@@ -63,7 +63,18 @@ Le due immagini mostrano come potrebbero apparire le statistiche su 30, 60 e 90 
 
 ![Esempio con dati simulati: barre dei pomodori completati ogni giorno negli ultimi 90 giorni, con una linea sulla media di 9,3 al giorno di studio e i totali per 30, 60 e 90 giorni](docs/esempio-utilizzo.png)
 
-![Esempio con dati simulati: tabella con il voto medio settimanale di ogni area della riflessione, dal rosso per i voti bassi al verde per quelli alti, e confronto delle medie su 30, 60 e 90 giorni](docs/esempio-aree.png)
+![Esempio con dati simulati: tabella con il voto medio settimanale di ogni area della riflessione, dal rosso per i voti bassi al verde per quelli alti. A destra le medie su 30, 60 e 90 giorni e l'andamento: Mentale, Digitale e Organizzazione salgono di 0,6 punti, Fisico scende di 0,3 e Persone e imprevisti di 0,7](docs/esempio-aree.png)
+
+**Lettura degli ultimi 30 giorni** *(esempio con dati simulati)*
+
+**Cosa sta migliorando:** Mentale, Digitale e Organizzazione crescono di 0,6 punti rispetto alla media degli ultimi 90 giorni. Annota cosa hai cambiato, così puoi continuare a farlo.
+
+**Da cosa partire:**
+
+1. **Persone e imprevisti (2,5, in calo di 0,7).** Comunica in anticipo gli orari di studio e proponi di rispondere nelle pause. Lascia anche un margine nel programma per gli imprevisti.
+2. **Fisico (3,3, in calo di 0,3).** Regola sedia e schermo, e usa le pause per alzarti e muoverti. Se il dolore persiste, parlane con un medico.
+
+> **Nota:** nell'app i consigli verranno scelti in base ai problemi segnati più spesso in ogni area, non solo in base al voto. Un voto basso su "Fisico", per esempio, può indicare stanchezza oppure mal di schiena, e le soluzioni sono diverse.
 
 ## Prima della pubblicazione
 
