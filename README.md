@@ -59,6 +59,12 @@ Storico delle sessioni e statistiche, senza librerie esterne né account:
 - **Grafici sulla riflessione:** andamento del punteggio, media per area, problemi più frequenti.
 - **Backup:** esportazione e importazione in un file, perché i dati restano nel browser. Il file conterrà risposte personali e non va pubblicato.
 
+## Prima della pubblicazione
+
+Il repository è privato. Con un account GitHub gratuito GitHub Pages non è disponibile sui repository privati, quindi la demo online potrà essere attivata solo dopo averlo reso pubblico.
+
+Per renderlo pubblico non serve alcuna pulizia: l'unico dato personale presente è il nome dell'autrice nella licenza. Prima di pubblicarlo restano da provare campanella e notifiche, le uniche funzioni non ancora verificate.
+
 ## Licenza
 
 [MIT](LICENSE)
