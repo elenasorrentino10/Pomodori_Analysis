@@ -61,15 +61,20 @@ Storico delle sessioni e statistiche, senza librerie esterne né account:
 
 Le due immagini mostrano come potrebbero apparire le statistiche su 30, 60 e 90 giorni. **Sono esempi con dati simulati:** questa funzione non è ancora presente nell'app.
 
-![Esempio con dati simulati: barre dei pomodori completati ogni giorno negli ultimi 90 giorni, con i totali per 30, 60 e 90 giorni](docs/esempio-utilizzo.png)
+![Esempio con dati simulati: barre dei pomodori completati ogni giorno negli ultimi 90 giorni, colorate dal rosso al verde rispetto alla media di 9,3 al giorno di studio, con i totali per 30, 60 e 90 giorni](docs/esempio-utilizzo.png)
 
-![Esempio con dati simulati: tabella a colori con il voto medio settimanale di ogni area della riflessione e confronto delle medie su 30, 60 e 90 giorni](docs/esempio-aree.png)
+![Esempio con dati simulati: tabella con il voto medio settimanale di ogni area della riflessione, dal rosso per i voti bassi al verde per quelli alti, e confronto delle medie su 30, 60 e 90 giorni](docs/esempio-aree.png)
 
 ## Prima della pubblicazione
 
 Il repository è privato. Con un account GitHub gratuito GitHub Pages non è disponibile sui repository privati, quindi la demo online potrà essere attivata solo dopo averlo reso pubblico.
 
 Per renderlo pubblico non serve alcuna pulizia: l'unico dato personale presente è il nome nella licenza. Prima di pubblicarlo restano da provare campanella e notifiche, le uniche funzioni non ancora verificate.
+
+Da aggiornare nella scheda "About" di GitHub:
+
+- aggiungere il topic `github-pages` quando il sito sarà attivo, cioè dopo aver reso pubblico il repository;
+- citare storico e statistiche nella descrizione quando saranno disponibili nell'app.
 
 ## Licenza
 
