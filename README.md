@@ -63,7 +63,7 @@ Storico delle sessioni e statistiche, senza librerie esterne né account:
 
 Il repository è privato. Con un account GitHub gratuito GitHub Pages non è disponibile sui repository privati, quindi la demo online potrà essere attivata solo dopo averlo reso pubblico.
 
-Per renderlo pubblico non serve alcuna pulizia: l'unico dato personale presente è il nome dell'autrice nella licenza. Prima di pubblicarlo restano da provare campanella e notifiche, le uniche funzioni non ancora verificate.
+Per renderlo pubblico non serve alcuna pulizia: l'unico dato personale presente è il nome nella licenza. Prima di pubblicarlo restano da provare campanella e notifiche, le uniche funzioni non ancora verificate.
 
 ## Licenza
 
