@@ -4,6 +4,20 @@ Pianificatore di giornate di studio con timer pomodoro. Inserisci l'ora di inizi
 
 ![Schermata di Pomodori con la barra di avanzamento e la lista di pomodori e pause con i relativi orari](docs/screenshot.png)
 
+> [!WARNING]
+> **I tuoi dati restano solo in questo browser, su questo dispositivo.** Non c'è un account e non esiste una copia online: programma, note, post-it e riflessione non vengono salvati da nessun'altra parte.
+>
+> **Se chiudi la pagina o spegni il computer non perdi nulla:** riaprendo Pomodori nello stesso modo ritrovi tutto.
+>
+> **Perdi i dati se:**
+> - usi una finestra in incognito e la chiudi;
+> - cancelli i dati di navigazione del browser;
+> - sposti o riscarichi la cartella del progetto, oppure cambi indirizzo della pagina.
+>
+> **Non li ritrovi se** apri Pomodori con un altro browser o su un altro dispositivo.
+>
+> Non esiste ancora uno storico: viene conservata una sola riflessione alla volta e "Azzera riflessione" la cancella. Se vuoi tenere qualcosa, copialo altrove.
+
 ## Funzionalità
 
 - Programma calcolato da ora di inizio e ora di fine: entrano tutti i pomodori e le pause che ci stanno, senza superare l'ora di fine.
