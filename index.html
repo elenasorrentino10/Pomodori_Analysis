@@ -1,0 +1,125 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="description" content="Pianificatore di giornate di studio con timer pomodoro: pause calcolate in automatico, note, post-it e riflessione finale.">
+  <title>Pomodori</title>
+  <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍅</text></svg>">
+  <link rel="stylesheet" href="style.css">
+  <script src="schedule.js" defer></script>
+  <script src="review.js" defer></script>
+  <script src="app.js" defer></script>
+</head>
+<body>
+  <div class="layout">
+    <header class="page-header">
+      <h1><span aria-hidden="true">🍅</span> Pomodori</h1>
+      <p class="sub" id="dateLabel"></p>
+    </header>
+
+    <aside class="postit" aria-label="Post-it">
+      <label for="postitText"><span aria-hidden="true">📌</span> Post-it</label>
+      <textarea id="postitText" placeholder="Scrivi qui quello che ti viene in mente, poi torna al compito."></textarea>
+    </aside>
+
+    <main>
+      <section class="planner" aria-label="Programma della giornata">
+        <div class="planner-fields">
+          <div class="field">
+            <label for="s_start">Ora di inizio</label>
+            <input type="time" id="s_start">
+          </div>
+          <div class="field">
+            <label for="s_end">Ora di fine</label>
+            <input type="time" id="s_end">
+          </div>
+        </div>
+        <div id="mealList"></div>
+        <div class="planner-actions">
+          <button type="button" class="btn-secondary" id="addMealBtn">+ Aggiungi pausa pasto</button>
+          <button type="button" class="btn-primary" id="regenBtn">Calcola programma</button>
+        </div>
+        <p class="plan-summary" id="planSummary" aria-live="polite"></p>
+      </section>
+
+      <details class="settings" id="settingsBox">
+        <summary>Altre impostazioni</summary>
+        <div class="grid">
+          <div class="field">
+            <label for="s_pomo">Durata pomodoro (min)</label>
+            <input type="number" id="s_pomo" min="1" max="120">
+          </div>
+          <div class="field">
+            <label for="s_pausa">Pausa breve (min)</label>
+            <input type="number" id="s_pausa" min="0" max="60">
+          </div>
+          <div class="field checkfield">
+            <input type="checkbox" id="s_autoAdvance">
+            <label for="s_autoAdvance">Avvia automaticamente il task successivo</label>
+          </div>
+          <div class="field checkfield">
+            <input type="checkbox" id="s_notify">
+            <label for="s_notify">Notifiche quando la pagina non è in primo piano</label>
+          </div>
+        </div>
+        <div class="settings-actions">
+          <button type="button" class="btn-secondary" id="resetChecksBtn">Azzera spunte</button>
+          <button type="button" class="btn-secondary" id="undoBtn" disabled>↩ Annulla</button>
+          <button type="button" class="btn-secondary" id="restoreDefaultBtn">Ripristina impostazioni predefinite</button>
+          <button type="button" class="btn-secondary" id="testBellBtn"><span aria-hidden="true">🔔</span> Prova campanella</button>
+        </div>
+      </details>
+
+      <div class="progress">
+        <span id="progressLabel">0/0</span>
+        <div class="bar" id="progressBar" role="progressbar" aria-label="Pomodori completati" aria-valuemin="0">
+          <div class="bar-fill" id="progressFill"></div>
+        </div>
+      </div>
+
+      <p class="status" id="status" role="status" aria-live="polite"></p>
+
+      <div id="list"></div>
+
+      <p class="footer-note">Premi ▶ su un task per avviare il timer e 📝 per aggiungere una nota. Alla fine suona la campanella e, se l'opzione è attiva, parte il task successivo. Gli orari si modificano direttamente nella lista. Tieni la pagina aperta perché la campanella possa suonare.</p>
+
+      <section class="review" aria-labelledby="reviewTitle">
+        <h2 id="reviewTitle">Com'è andata la sessione?</h2>
+        <p class="review-intro">Dai un voto da 1 (molto male) a 5 (molto bene) alle aree che ti interessano. Con un voto fino a 3 puoi indicare cosa non ha funzionato e ricevere un suggerimento.</p>
+
+        <div id="reviewAreas"></div>
+
+        <div class="review-area">
+          <h3>Altro</h3>
+          <div class="field">
+            <label for="r_other">C'è altro che ha influito sulla sessione?</label>
+            <textarea id="r_other" rows="2"></textarea>
+          </div>
+          <div class="field">
+            <label for="r_otherSolution">Che cosa potresti provare?</label>
+            <textarea id="r_otherSolution" rows="2"></textarea>
+          </div>
+        </div>
+
+        <div class="review-area">
+          <h3>Per chiudere</h3>
+          <div class="field">
+            <label for="r_worked">Che cosa ha funzionato?</label>
+            <textarea id="r_worked" rows="2"></textarea>
+          </div>
+          <div class="field">
+            <label for="r_change">Che cosa cambierai la prossima volta?</label>
+            <textarea id="r_change" rows="2"></textarea>
+          </div>
+        </div>
+
+        <div class="score" id="reviewScore" aria-live="polite"></div>
+        <div id="reviewSolutions"></div>
+
+        <button type="button" class="btn-secondary" id="resetReviewBtn">Azzera riflessione</button>
+      </section>
+    </main>
+  </div>
+</body>
+</html>
