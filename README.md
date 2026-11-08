@@ -61,7 +61,7 @@ Storico delle sessioni e statistiche, senza librerie esterne né account:
 
 Le due immagini mostrano come potrebbero apparire le statistiche su 30, 60 e 90 giorni. **Sono esempi con dati simulati:** questa funzione non è ancora presente nell'app.
 
-![Esempio con dati simulati: barre dei pomodori completati ogni giorno negli ultimi 90 giorni, colorate dal rosso al verde rispetto alla media di 9,3 al giorno di studio, con i totali per 30, 60 e 90 giorni](docs/esempio-utilizzo.png)
+![Esempio con dati simulati: barre dei pomodori completati ogni giorno negli ultimi 90 giorni, con una linea sulla media di 9,3 al giorno di studio e i totali per 30, 60 e 90 giorni](docs/esempio-utilizzo.png)
 
 ![Esempio con dati simulati: tabella con il voto medio settimanale di ogni area della riflessione, dal rosso per i voti bassi al verde per quelli alti, e confronto delle medie su 30, 60 e 90 giorni](docs/esempio-aree.png)
 
