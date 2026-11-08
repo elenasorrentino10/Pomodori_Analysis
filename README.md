@@ -59,6 +59,12 @@ Storico delle sessioni e statistiche, senza librerie esterne né account:
 - **Grafici sulla riflessione:** andamento del punteggio, media per area, problemi più frequenti.
 - **Backup:** esportazione e importazione in un file, perché i dati restano nel browser. Il file conterrà risposte personali e non va pubblicato.
 
+Le due immagini mostrano come potrebbero apparire le statistiche su 30, 60 e 90 giorni. **Sono esempi con dati simulati:** questa funzione non è ancora presente nell'app.
+
+![Esempio con dati simulati: barre dei pomodori completati ogni giorno negli ultimi 90 giorni, con i totali per 30, 60 e 90 giorni](docs/esempio-utilizzo.png)
+
+![Esempio con dati simulati: tabella a colori con il voto medio settimanale di ogni area della riflessione e confronto delle medie su 30, 60 e 90 giorni](docs/esempio-aree.png)
+
 ## Prima della pubblicazione
 
 Il repository è privato. Con un account GitHub gratuito GitHub Pages non è disponibile sui repository privati, quindi la demo online potrà essere attivata solo dopo averlo reso pubblico.
