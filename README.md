@@ -90,16 +90,14 @@ Le due immagini mostrano come potrebbero apparire le statistiche su 30, 60 e 90 
 
 > **Nota:** nell'app i consigli verranno scelti in base ai problemi segnati più spesso in ogni area, non solo in base al voto. Un voto basso su "Fisico", per esempio, può indicare stanchezza oppure mal di schiena, e le soluzioni sono diverse.
 
-## Prima della pubblicazione
+## Stato del progetto
 
-Il repository è privato. Con un account GitHub gratuito GitHub Pages non è disponibile sui repository privati, quindi la demo online potrà essere attivata solo dopo averlo reso pubblico.
+Campanella e notifiche non sono ancora state provate.
 
-Per renderlo pubblico non serve alcuna pulizia: l'unico dato personale presente è il nome nella licenza. Prima di pubblicarlo restano da provare campanella e notifiche, le uniche funzioni non ancora verificate.
+Prossimi passi:
 
-Da aggiornare nella scheda "About" di GitHub:
-
-- aggiungere il topic `github-pages` quando il sito sarà attivo, cioè dopo aver reso pubblico il repository;
-- citare storico e statistiche nella descrizione quando saranno disponibili nell'app.
+- attivare GitHub Pages, poi aggiungere il link alla demo e il topic `github-pages`;
+- citare storico e statistiche nella descrizione del repository quando saranno disponibili nell'app.
 
 ## Licenza
 
