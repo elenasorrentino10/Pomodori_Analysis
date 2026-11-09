@@ -94,10 +94,9 @@ Le due immagini mostrano come potrebbero apparire le statistiche su 30, 60 e 90 
 
 ## Stato del progetto
 
-Campanella e notifiche non sono ancora state provate.
-
 Prossimi passi:
 
+- provare campanella e notifiche;
 - ridurre la frizione di UX/UI;
 - citare storico e statistiche nella descrizione del repository quando saranno disponibili nell'app.
 
