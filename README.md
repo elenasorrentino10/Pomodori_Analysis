@@ -98,6 +98,7 @@ Campanella e notifiche non sono ancora state provate.
 
 Prossimi passi:
 
+- ridurre la frizione di UX/UI;
 - citare storico e statistiche nella descrizione del repository quando saranno disponibili nell'app.
 
 ## Licenza
