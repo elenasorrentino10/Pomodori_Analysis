@@ -2,6 +2,8 @@
 
 Pianificatore di giornate di studio con timer pomodoro. Inserisci l'ora di inizio, l'ora di fine e quando vuoi fare le pause pasto: pomodori e pause vengono calcolati in automatico, con una campanella alla fine di ogni blocco.
 
+**[Prova la demo online](https://elenasorrentino10.github.io/Pomodori_Analysis/)**
+
 ![Schermata di Pomodori con la barra di avanzamento e la lista di pomodori e pause con i relativi orari](docs/screenshot.png)
 
 > [!WARNING]
@@ -39,7 +41,7 @@ I suggerimenti della riflessione sono consigli generali di organizzazione dello 
 
 ## Come usarlo
 
-Scarica il repository e apri `index.html` nel browser: non serve installare nulla.
+Apri la [demo online](https://elenasorrentino10.github.io/Pomodori_Analysis/), oppure scarica il repository e apri `index.html` nel browser: non serve installare nulla.
 
 La pagina deve restare aperta perché la campanella possa suonare. I browser possono rallentare le schede in background, quindi l'avviso può arrivare con qualche secondo di ritardo.
 
@@ -96,7 +98,6 @@ Campanella e notifiche non sono ancora state provate.
 
 Prossimi passi:
 
-- attivare GitHub Pages, poi aggiungere il link alla demo e il topic `github-pages`;
 - citare storico e statistiche nella descrizione del repository quando saranno disponibili nell'app.
 
 ## Licenza
