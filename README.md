@@ -4,7 +4,7 @@ Pianificatore di giornate di studio con timer pomodoro. Inserisci l'ora di inizi
 
 **[Prova la demo online](https://elenasorrentino10.github.io/Pomodori_Analysis/)**
 
-![Schermata di Pomodori con la barra di avanzamento e la lista di pomodori e pause con i relativi orari](docs/screenshot.png)
+![Schermata di Pomodori con il blocco corrente in evidenza, il programma della giornata, la lista di pomodori e pause e il post-it laterale](docs/screenshot.png)
 
 > [!WARNING]
 > **I tuoi dati restano solo in questo browser, su questo dispositivo.** Non c'è un account e non esiste una copia online: programma, note, post-it e riflessione non vengono salvati da nessun'altra parte.
@@ -22,6 +22,8 @@ Pianificatore di giornate di studio con timer pomodoro. Inserisci l'ora di inizi
 
 ## Funzionalità
 
+- Blocco corrente in evidenza, con timer grande, pulsante Avvia/Pausa e blocco successivo.
+- Lista essenziale: ogni riga si apre per modificare gli orari, scrivere una nota o azzerare il timer.
 - Programma calcolato da ora di inizio e ora di fine: entrano tutti i pomodori e le pause che ci stanno, senza superare l'ora di fine.
 - Una o più pause pasto, ognuna con il proprio orario e la propria durata: iniziano esattamente all'ora scelta, senza spezzare un pomodoro.
 - Durate di pomodori e pause configurabili.
@@ -32,7 +34,7 @@ Pianificatore di giornate di studio con timer pomodoro. Inserisci l'ora di inizi
 - Annullamento dell'ultima modifica.
 - Note su ogni pomodoro e su ogni pausa.
 - Post-it laterale per annotare i pensieri che arrivano mentre studi.
-- Riflessione guidata a fine sessione: un voto per area (emotiva, fisica, mentale, ambientale, digitale, organizzazione, materiale di studio, motivazione, persone e imprevisti), i problemi emersi e suggerimenti pratici.
+- Riflessione guidata a fine sessione, in un pannello a comparsa con un'area alla volta: un voto per area (emotiva, fisica, mentale, ambientale, digitale, organizzazione, materiale di studio, motivazione, persone e imprevisti), i problemi emersi e suggerimenti pratici.
 - Punteggio finale su 100, calcolato per il 70% dai voti e per il 30% dai pomodori completati.
 
 Nessun dato lascia il browser: non ci sono account, server o librerie esterne.
@@ -97,7 +99,6 @@ Le due immagini mostrano come potrebbero apparire le statistiche su 30, 60 e 90 
 Prossimi passi:
 
 - provare campanella e notifiche;
-- ridurre la frizione di UX/UI;
 - citare storico e statistiche nella descrizione del repository quando saranno disponibili nell'app.
 
 ## Licenza

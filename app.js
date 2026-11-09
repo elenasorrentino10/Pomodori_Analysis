@@ -7,7 +7,9 @@
   const TIMERS_KEY = 'pomodori.timers.v1';
   const POSTIT_KEY = 'pomodori.postit.v1';
   const REVIEW_KEY = 'pomodori.review.v1';
+  const HOWTO_KEY = 'pomodori.howtoClosed.v1';
   const AUTO_ADVANCE_DELAY_MS = 1600;
+  const REVIEW_PROMPT_DELAY_MS = 2000;
 
   const $ = (id) => document.getElementById(id);
 
@@ -52,8 +54,9 @@
   let intervalId = null;
   let pendingAdvanceId = null;
   let audioCtx = null;
-  const openNotes = new Set();
+  const openRows = new Set();
   let review = R.normalizeReview(readJSON(REVIEW_KEY));
+  let reviewStep = 0;
 
   function saveState() {
     writeJSON(STATE_KEY, { settings, items });
@@ -177,7 +180,7 @@
     clearTicking();
     activeIdx = null;
     timerState = {};
-    openNotes.clear();
+    openRows.clear();
     saveTimers();
   }
 
@@ -229,6 +232,7 @@
     st.remaining = Math.max(0, Math.round(remainingMs / 1000));
     const el = $('cd-' + idx);
     if (el) el.textContent = S.fmtMMSS(st.remaining);
+    $('nowTime').textContent = S.fmtMMSS(st.remaining);
     if (remainingMs <= 0) finishTimer(idx);
   }
 
@@ -268,6 +272,29 @@
         render();
       }, AUTO_ADVANCE_DELAY_MS);
     }
+
+    if (idx + 1 >= items.length) {
+      setTimeout(() => {
+        if (!$('reviewDialog').open) openReview();
+      }, REVIEW_PROMPT_DELAY_MS);
+    }
+  }
+
+  // Il blocco da mostrare in evidenza: quello attivo, in pausa o il primo ancora da fare.
+  function currentIdx() {
+    if (activeIdx !== null) return activeIdx;
+    const paused = items.findIndex((item, idx) => {
+      const st = timerState[idx];
+      return st && st.remaining > 0 && st.remaining < S.durationSeconds(item);
+    });
+    if (paused >= 0) return paused;
+
+    let last = -1;
+    items.forEach((item, idx) => {
+      const finished = timerState[idx] && timerState[idx].remaining === 0;
+      if (finished || (item.type === 'pomodoro' && item.checked)) last = idx;
+    });
+    return last + 1 < items.length ? last + 1 : null;
   }
 
   // Riprende il timer dopo un ricaricamento della pagina.
@@ -308,6 +335,21 @@
     settings.meals.forEach(addMealRow);
     updateMealControls();
     updatePlanSummary();
+    updatePlanCompact();
+  }
+
+  function setPlanEditorOpen(open) {
+    $('planEditor').hidden = !open;
+    $('planEditBtn').textContent = open ? 'Chiudi' : 'Modifica';
+    $('planEditBtn').setAttribute('aria-expanded', String(open));
+  }
+
+  function updatePlanCompact() {
+    const plan = S.computePlan(settings);
+    let text = settings.start + '–' + settings.end + ' · ' + plural(plan.count, 'pomodoro', 'pomodori');
+    if (plan.mealStarts.length === 1) text += ' · pausa pasto alle ' + plan.mealStarts[0];
+    if (plan.mealStarts.length > 1) text += ' · ' + plan.mealStarts.length + ' pause pasto';
+    $('planCompactText').textContent = text;
   }
 
   function addMealRow(meal) {
@@ -409,26 +451,50 @@
     const st = timerState[idx];
     const remaining = st ? st.remaining : S.durationSeconds(item);
     const running = Boolean(st && st.running);
+    const started = Boolean(st && st.remaining > 0 && st.remaining < S.durationSeconds(item));
     const name = S.itemName(item);
     const lead = item.type === 'pomodoro'
       ? '<input type="checkbox" class="chk" data-idx="' + idx + '" data-focus-key="chk-' + idx + '"' +
-        (item.checked ? ' checked' : '') + ' aria-label="' + name + ' completato"><div class="n" aria-hidden="true">' + item.n + '</div>'
+        (item.checked ? ' checked' : '') + ' aria-label="' + name + ' completato">'
       : '<div class="icon" aria-hidden="true">' + (item.meal ? '🍽' : '☕') + '</div>';
 
     return lead +
-      '<div class="label">' + name + '</div>' +
-      '<div class="times">' + timeInput(idx, 'start', item.start, name) +
-      '<span aria-hidden="true">–</span>' + timeInput(idx, 'end', item.end, name) + '</div>' +
-      '<div class="timer">' +
-      '<button type="button" class="tbtn note-btn' + (item.note ? ' has-note' : '') + '" data-idx="' + idx +
-      '" data-focus-key="notebtn-' + idx + '" title="Nota" aria-label="Nota per ' + name +
-      '" aria-expanded="' + openNotes.has(idx) + '"><span aria-hidden="true">📝</span></button>' +
-      '<button type="button" class="tbtn reset-btn" data-idx="' + idx + '" data-action="reset" data-focus-key="reset-' + idx +
-      '" title="Azzera timer" aria-label="Azzera timer di ' + name + '">↺</button>' +
-      '<span class="countdown" id="cd-' + idx + '">' + S.fmtMMSS(remaining) + '</span>' +
-      '<button type="button" class="tbtn play-btn" data-idx="' + idx + '" data-action="toggle" data-focus-key="toggle-' + idx +
-      '" title="' + (running ? 'Pausa' : 'Avvia') + '" aria-label="' + (running ? 'Metti in pausa ' : 'Avvia ') + name + '">' +
-      (running ? '⏸' : '▶') + '</button></div>';
+      '<button type="button" class="row-toggle" data-action="expand" data-idx="' + idx + '" data-focus-key="expand-' + idx +
+      '" aria-expanded="' + openRows.has(idx) + '" aria-label="' + name + ', dalle ' + item.start + ' alle ' + item.end + ', dettagli">' +
+      '<span class="label">' + name + '</span>' +
+      '<span class="note-dot" title="Con nota" aria-hidden="true"' + (item.note ? '' : ' hidden') + '>📝</span>' +
+      '<span class="row-time">' + item.start + '–' + item.end + '</span>' +
+      (running || started ? '<span class="countdown" id="cd-' + idx + '">' + S.fmtMMSS(remaining) + '</span>' : '') +
+      '<span class="chevron" aria-hidden="true">▾</span></button>';
+  }
+
+  function renderNow() {
+    const idx = currentIdx();
+    const card = $('nowCard');
+    const finished = idx === null;
+    $('nowTime').hidden = finished;
+    if (finished) {
+      card.classList.remove('running');
+      $('nowKicker').textContent = 'Programma completato';
+      $('nowName').textContent = 'Com\'è andata?';
+      $('nowNext').textContent = 'Bastano pochi minuti per capire cosa migliorare.';
+      $('nowBtn').textContent = 'Rifletti';
+      return;
+    }
+
+    const item = items[idx];
+    const st = timerState[idx];
+    const duration = S.durationSeconds(item);
+    const running = Boolean(st && st.running);
+    const started = Boolean(st && st.remaining > 0 && st.remaining < duration);
+    const next = items[idx + 1];
+
+    card.classList.toggle('running', running);
+    $('nowKicker').textContent = running ? 'Ora' : (started ? 'In pausa' : 'Prossimo');
+    $('nowName').textContent = S.itemName(item);
+    $('nowNext').textContent = next ? 'Poi: ' + S.itemName(next) + ' alle ' + next.start : 'Ultimo blocco della giornata';
+    $('nowTime').textContent = S.fmtMMSS(st && st.remaining > 0 ? st.remaining : duration);
+    $('nowBtn').textContent = running ? 'Pausa' : (started ? 'Riprendi' : 'Avvia');
   }
 
   function render() {
@@ -440,6 +506,7 @@
     list.innerHTML = '';
     let done = 0;
     let total = 0;
+    const current = currentIdx();
 
     items.forEach((item, idx) => {
       const st = timerState[idx];
@@ -455,10 +522,12 @@
         cls += ' pausa' + (item.meal ? ' meal' : '');
       }
       if (st && st.running) cls += ' active';
+      else if (idx === current) cls += ' current';
+      if (openRows.has(idx)) cls += ' expanded';
       row.className = cls;
       row.setAttribute('data-row-idx', idx);
       row.innerHTML = rowHTML(item, idx);
-      if (openNotes.has(idx)) row.appendChild(notePanel(item, idx));
+      if (openRows.has(idx)) row.appendChild(rowPanel(item, idx));
       list.appendChild(row);
     });
 
@@ -474,13 +543,26 @@
         if (caret !== null) el.setSelectionRange(caret, caret);
       }
     }
+    renderNow();
     updateReviewOutput();
   }
 
   // Il testo delle note entra solo come valore del campo, mai come HTML.
-  function notePanel(item, idx) {
+  function rowPanel(item, idx) {
+    const st = timerState[idx];
+    const running = Boolean(st && st.running);
+    const name = S.itemName(item);
     const panel = document.createElement('div');
-    panel.className = 'note-panel';
+    panel.className = 'row-panel';
+    panel.innerHTML =
+      '<div class="row-panel-top">' +
+      '<div class="times">' + timeInput(idx, 'start', item.start, name) +
+      '<span aria-hidden="true">–</span>' + timeInput(idx, 'end', item.end, name) + '</div>' +
+      '<div class="row-buttons">' +
+      '<button type="button" data-action="toggle" data-idx="' + idx + '" data-focus-key="toggle-' + idx + '">' +
+      (running ? 'Pausa' : 'Avvia questo') + '</button>' +
+      '<button type="button" data-action="reset" data-idx="' + idx + '" data-focus-key="reset-' + idx + '">Azzera timer</button>' +
+      '</div></div>';
     const input = document.createElement('textarea');
     input.className = 'note-input';
     input.rows = 2;
@@ -564,6 +646,52 @@
     $('r_change').value = review.change;
   }
 
+  function reviewSteps() {
+    return [...$('reviewAreas').children, $('reviewOther'), $('reviewClosing'), $('reviewResult')];
+  }
+
+  function updateReviewNav() {
+    const steps = reviewSteps();
+    const areas = R.AREAS.length;
+    const isArea = reviewStep < areas;
+    const unrated = isArea && !review.ratings[R.AREAS[reviewStep].id];
+    let next = unrated ? 'Salta' : 'Avanti';
+    if (reviewStep === steps.length - 2) next = 'Vedi il risultato';
+    if (reviewStep === steps.length - 1) next = 'Fine';
+    $('reviewNext').textContent = next;
+    $('reviewBack').disabled = reviewStep === 0;
+  }
+
+  function showReviewStep(index) {
+    const steps = reviewSteps();
+    const areas = R.AREAS.length;
+    reviewStep = Math.max(0, Math.min(index, steps.length - 1));
+    steps.forEach((step, i) => {
+      step.hidden = i !== reviewStep;
+    });
+
+    let label = 'Risultato';
+    if (reviewStep < areas) label = 'Area ' + (reviewStep + 1) + ' di ' + areas;
+    else if (reviewStep === areas) label = 'Altro';
+    else if (reviewStep === areas + 1) label = 'Per chiudere';
+    $('reviewStepLabel').textContent = label;
+    $('reviewProgress').style.width = (reviewStep / (steps.length - 1)) * 100 + '%';
+    $('reviewIntro').hidden = reviewStep !== 0;
+    updateReviewNav();
+  }
+
+  function openReview() {
+    closeMobileSide();
+    updateReviewOutput();
+    showReviewStep(0);
+    $('reviewDialog').showModal();
+  }
+
+  function closeMobileSide() {
+    $('side').classList.remove('open');
+    $('mobilePostitBtn').setAttribute('aria-expanded', 'false');
+  }
+
   function updateReviewOutput() {
     const pomodori = items.filter((item) => item.type === 'pomodoro');
     const done = pomodori.filter((item) => item.checked).length;
@@ -627,7 +755,20 @@
         review.problems[id] = [...picked];
       }
       saveReview();
+      updateReviewNav();
     });
+
+    $('reviewNext').addEventListener('click', () => {
+      if (reviewStep === reviewSteps().length - 1) $('reviewDialog').close();
+      else showReviewStep(reviewStep + 1);
+    });
+    $('reviewBack').addEventListener('click', () => showReviewStep(reviewStep - 1));
+    $('reviewClose').addEventListener('click', () => $('reviewDialog').close());
+    $('reviewDialog').addEventListener('click', (event) => {
+      if (event.target === $('reviewDialog')) $('reviewDialog').close();
+    });
+    $('openReviewBtn').addEventListener('click', openReview);
+    $('mobileReviewBtn').addEventListener('click', openReview);
 
     [['r_other', 'other'], ['r_otherSolution', 'otherSolution'], ['r_worked', 'worked'], ['r_change', 'change']]
       .forEach(([id, field]) => {
@@ -645,6 +786,7 @@
     });
 
     syncReviewForm();
+    showReviewStep(0);
   }
 
   $('list').addEventListener('change', (event) => {
@@ -683,29 +825,22 @@
     const idx = Number(input.dataset.idx);
     items[idx].note = input.value;
     saveState();
-    const button = input.closest('.row').querySelector('.note-btn');
-    button.classList.toggle('has-note', input.value !== '');
+    input.closest('.row').querySelector('.note-dot').hidden = input.value === '';
   });
 
   $('list').addEventListener('click', (event) => {
-    const noteButton = event.target.closest('.note-btn');
-    if (noteButton) {
-      const idx = Number(noteButton.dataset.idx);
-      if (openNotes.has(idx)) {
-        openNotes.delete(idx);
-        render();
-      } else {
-        openNotes.add(idx);
-        render();
-        $('list').querySelector('[data-focus-key="note-' + idx + '"]').focus();
-      }
+    const btn = event.target.closest('[data-action]');
+    if (!btn) return;
+    const idx = Number(btn.dataset.idx);
+
+    if (btn.dataset.action === 'expand') {
+      if (openRows.has(idx)) openRows.delete(idx);
+      else openRows.add(idx);
+      render();
       return;
     }
 
-    const btn = event.target.closest('.tbtn');
-    if (!btn) return;
     cancelPendingAdvance();
-    const idx = Number(btn.dataset.idx);
     if (btn.dataset.action === 'toggle') {
       const st = timerState[idx];
       if (activeIdx === idx && st && st.running) {
@@ -733,8 +868,40 @@
     items = S.mergeProgress(oldItems, S.generateItems(settings));
     saveState();
     fillSettingsForm();
+    setPlanEditorOpen(false);
     setStatus('Programma calcolato.');
     render();
+  });
+
+  $('nowBtn').addEventListener('click', () => {
+    const idx = currentIdx();
+    if (idx === null) {
+      openReview();
+      return;
+    }
+    const st = timerState[idx];
+    if (st && st.running) {
+      pauseTimer(idx);
+    } else {
+      getAudioCtx();
+      startTimer(idx);
+    }
+    render();
+  });
+
+  $('planEditBtn').addEventListener('click', () => {
+    setPlanEditorOpen($('planEditor').hidden);
+  });
+
+  $('howtoClose').addEventListener('click', () => {
+    $('howto').hidden = true;
+    writeJSON(HOWTO_KEY, true);
+  });
+
+  $('mobilePostitBtn').addEventListener('click', () => {
+    const open = $('side').classList.toggle('open');
+    $('mobilePostitBtn').setAttribute('aria-expanded', String(open));
+    if (open) $('postitText').focus();
   });
 
   ['s_start', 's_end', 's_pomo', 's_pausa', 'mealList'].forEach((id) => {
@@ -821,6 +988,8 @@
     year: 'numeric',
   });
 
+  $('howto').hidden = readJSON(HOWTO_KEY) === true;
+  setPlanEditorOpen(!hasSavedState);
   fillSettingsForm();
   initPostit();
   initReview();
