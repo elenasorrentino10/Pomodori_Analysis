@@ -672,6 +672,20 @@
       label.appendChild(element('span', '', problem.label));
       problems.appendChild(label);
     });
+    const otherLabel = element('label');
+    const otherInput = element('input', 'problem-input');
+    otherInput.type = 'checkbox';
+    otherInput.value = R.OTHER_ID;
+    otherLabel.appendChild(otherInput);
+    otherLabel.appendChild(element('span', '', t('review.otherProblem')));
+    problems.appendChild(otherLabel);
+    const otherText = element('input', 'area-other');
+    otherText.type = 'text';
+    otherText.maxLength = 200;
+    otherText.placeholder = t('review.otherDescribe');
+    otherText.setAttribute('aria-label', t('review.otherDescribe') + ' (' + local.label + ')');
+    otherText.hidden = true;
+    problems.appendChild(otherText);
     box.appendChild(problems);
     return box;
   }
@@ -694,6 +708,9 @@
       box.querySelectorAll('.problem-input').forEach((input) => {
         input.checked = (review.problems[id] || []).includes(input.value);
       });
+      const otherText = box.querySelector('.area-other');
+      otherText.value = review.otherByArea[id] || '';
+      otherText.hidden = !(review.problems[id] || []).includes(R.OTHER_ID);
       box.querySelector('.problems').hidden = !R.showsProblems(rating);
     });
     $('r_other').value = review.other;
@@ -715,6 +732,11 @@
     if (reviewStep === steps.length - 1) next = 'review.done';
     $('reviewNext').textContent = t(next);
     $('reviewBack').disabled = reviewStep === 0;
+    // With a rating of 3 or lower, a reason is required to move on: otherwise there would be no suggestion.
+    const missing = reviewStep < areas ? R.missingReason(review, R.AREAS[reviewStep].id) : null;
+    $('reviewNext').disabled = Boolean(missing);
+    $('reviewHint').textContent = missing === 'reason' ? t('review.pickReason')
+      : (missing === 'other' ? t('review.describeOther') : '');
   }
 
   function showReviewStep(index) {
@@ -811,7 +833,20 @@
         if (input.checked) picked.add(input.value);
         else picked.delete(input.value);
         review.problems[id] = [...picked];
+        if (input.value === R.OTHER_ID) {
+          const field = box.querySelector('.area-other');
+          field.hidden = !input.checked;
+          if (input.checked) field.focus();
+        }
       }
+      saveReview();
+      updateReviewNav();
+    });
+
+    host.addEventListener('input', (event) => {
+      const field = event.target;
+      if (!field.classList.contains('area-other')) return;
+      review.otherByArea[field.closest('[data-area]').dataset.area] = field.value;
       saveReview();
       updateReviewNav();
     });

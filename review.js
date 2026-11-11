@@ -10,12 +10,14 @@
   const PROBLEM_THRESHOLD = 3; // problems appear for ratings up to 3
   const AREA_WEIGHT = 0.7;
   const COMPLETION_WEIGHT = 0.3;
+  const OTHER_ID = 'altro'; // per-area "Other" reason, described by the user
 
   const AREAS = Object.freeze([
     {
       id: 'emotivo',
       label: { it: 'Emotivo', en: 'Emotional' },
       question: { it: 'Com\'è stato il tuo stato d\'animo?', en: 'How was your mood?' },
+      general: { it: "Scrivi in una frase cosa è successo e scegli una sola piccola azione per la prossima sessione. Se la difficoltà si ripete, parlane con una persona di fiducia o con un professionista.", en: "Write in one sentence what happened and choose one small action for the next session. If it keeps happening, talk to someone you trust or to a professional." },
       problems: [
         {
           id: 'ansia',
@@ -55,6 +57,7 @@
       id: 'fisico',
       label: { it: 'Fisico', en: 'Physical' },
       question: { it: 'Come stava il tuo corpo?', en: 'How did your body feel?' },
+      general: { it: "Fai una pausa vera lontano dalla scrivania, bevi e muoviti. Se il disturbo continua, parlane con un medico.", en: "Take a real break away from your desk, drink some water and move. If the problem continues, talk to a doctor." },
       problems: [
         {
           id: 'stanchezza',
@@ -94,6 +97,7 @@
       id: 'mentale',
       label: { it: 'Mentale', en: 'Mental' },
       question: { it: 'Quanto è stato facile restare sul compito?', en: 'How easy was it to stay on task?' },
+      general: { it: "Riduci il compito al prossimo passo concreto e scrivi sul post-it ciò che ti distrae.", en: "Reduce the task to the next concrete step and write what distracts you on the sticky note." },
       problems: [
         {
           id: 'divagare',
@@ -133,6 +137,7 @@
       id: 'ambientale',
       label: { it: 'Ambientale', en: 'Environment' },
       question: { it: 'Il posto in cui hai lavorato ti ha aiutato?', en: 'Did the place where you worked help you?' },
+      general: { it: "Prima della prossima sessione cambia una sola cosa del posto in cui studi, oppure prova un luogo diverso.", en: "Before the next session, change one thing about the place where you study, or try a different place." },
       problems: [
         {
           id: 'rumore',
@@ -164,6 +169,7 @@
       id: 'digitale',
       label: { it: 'Digitale', en: 'Digital' },
       question: { it: 'Telefono e schermi ti hanno lasciato lavorare?', en: 'Did your phone and screens let you work?' },
+      general: { it: "Decidi in anticipo quando usare telefono e app, e tienili lontani durante i pomodori.", en: "Decide in advance when to use your phone and apps, and keep them away during pomodoros." },
       problems: [
         {
           id: 'telefono',
@@ -195,6 +201,7 @@
       id: 'organizzazione',
       label: { it: 'Organizzazione', en: 'Organization' },
       question: { it: 'Il piano della giornata ha funzionato?', en: 'Did the day plan work?' },
+      general: { it: "Ricalcola il programma partendo da ciò che è successo oggi e scegli una sola priorità per la prossima sessione.", en: "Rebuild the plan from what happened today and choose a single priority for the next session." },
       problems: [
         {
           id: 'obiettivo',
@@ -234,6 +241,7 @@
       id: 'materiale',
       label: { it: 'Materiale di studio', en: 'Study material' },
       question: { it: 'Argomenti e materiali erano adatti?', en: 'Were the topics and materials suitable?' },
+      general: { it: "Annota cosa ti è mancato e procuratelo prima della prossima sessione, oppure chiedi aiuto a chi conosce l'argomento.", en: "Note what was missing and get it before the next session, or ask someone who knows the topic for help." },
       problems: [
         {
           id: 'difficile',
@@ -265,6 +273,7 @@
       id: 'motivazione',
       label: { it: 'Motivazione', en: 'Motivation' },
       question: { it: 'Quanta voglia avevi di portare avanti il lavoro?', en: 'How much did you want to keep going?' },
+      general: { it: "Collega la prossima sessione a un obiettivo concreto e prevedi una piccola ricompensa alla fine.", en: "Link the next session to a concrete goal and plan a small reward at the end." },
       problems: [
         {
           id: 'senso',
@@ -296,6 +305,7 @@
       id: 'persone',
       label: { it: 'Persone e imprevisti', en: 'People and unexpected events' },
       question: { it: 'Hai potuto proteggere il tuo tempo?', en: 'Could you protect your time?' },
+      general: { it: "Comunica in anticipo i tuoi orari e lascia un margine nel programma per gli imprevisti.", en: "Share your study hours in advance and leave some slack in the plan for the unexpected." },
       problems: [
         {
           id: 'interruzioni',
@@ -342,6 +352,7 @@
       id: area.id,
       label: localize(area.label, lang),
       question: localize(area.question, lang),
+      general: localize(area.general, lang),
       problems: area.problems.map((problem) => ({
         id: problem.id,
         label: localize(problem.label, lang),
@@ -351,7 +362,7 @@
   }
 
   function emptyReview() {
-    return { ratings: {}, problems: {}, other: '', otherSolution: '', worked: '', change: '' };
+    return { ratings: {}, problems: {}, otherByArea: {}, other: '', otherSolution: '', worked: '', change: '' };
   }
 
   function text(value) {
@@ -363,16 +374,18 @@
     const source = raw && typeof raw === 'object' ? raw : {};
     const ratings = source.ratings && typeof source.ratings === 'object' ? source.ratings : {};
     const problems = source.problems && typeof source.problems === 'object' ? source.problems : {};
+    const otherByArea = source.otherByArea && typeof source.otherByArea === 'object' ? source.otherByArea : {};
     const review = emptyReview();
 
     AREAS.forEach((area) => {
       const rating = Number(ratings[area.id]);
       if (Number.isInteger(rating) && rating >= 1 && rating <= 5) review.ratings[area.id] = rating;
       if (Array.isArray(problems[area.id])) {
-        const known = area.problems.map((problem) => problem.id);
+        const known = [...area.problems.map((problem) => problem.id), OTHER_ID];
         const picked = problems[area.id].filter((id) => known.includes(id));
         if (picked.length > 0) review.problems[area.id] = [...new Set(picked)];
       }
+      if (typeof otherByArea[area.id] === 'string') review.otherByArea[area.id] = otherByArea[area.id];
     });
 
     review.other = text(source.other);
@@ -384,6 +397,15 @@
 
   function showsProblems(rating) {
     return Number.isInteger(rating) && rating <= PROBLEM_THRESHOLD;
+  }
+
+  // What is still missing before leaving an area with a low rating: a reason, or the text of "Other".
+  function missingReason(review, areaId) {
+    if (!showsProblems(review.ratings[areaId])) return null;
+    const picked = review.problems[areaId] || [];
+    if (picked.length === 0) return 'reason';
+    if (picked.includes(OTHER_ID) && !(review.otherByArea[areaId] || '').trim()) return 'other';
+    return null;
   }
 
   // The score is out of 100: 70% area ratings, 30% completed pomodoros.
@@ -416,9 +438,15 @@
       .sort((a, b) => review.ratings[a.id] - review.ratings[b.id])
       .flatMap((area) => {
         const local = areaText(area, lang);
-        return local.problems
-          .filter((problem) => (review.problems[area.id] || []).includes(problem.id))
+        const picked = review.problems[area.id] || [];
+        const entries = local.problems
+          .filter((problem) => picked.includes(problem.id))
           .map((problem) => ({ area: local.label, problem: problem.label, solution: problem.solution }));
+        const otherText = (review.otherByArea[area.id] || '').trim();
+        if (picked.includes(OTHER_ID) && otherText) {
+          entries.push({ area: local.label, problem: otherText, solution: local.general });
+        }
+        return entries;
       });
 
     if (review.other.trim()) {
@@ -431,5 +459,5 @@
     return solutions;
   }
 
-  return { AREAS, areaText, emptyReview, normalizeReview, showsProblems, computeScore, selectedSolutions };
+  return { AREAS, OTHER_ID, areaText, emptyReview, normalizeReview, showsProblems, missingReason, computeScore, selectedSolutions };
 });

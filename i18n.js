@@ -141,6 +141,11 @@
       'review.scoreEmpty': 'Dai almeno un voto per vedere il punteggio finale.',
       'review.scoreDetail': 'Aree valutate: {rated} su {total}, media {areas}/100. Pomodori completati: {done} su {pomodoros}. Il punteggio pesa per il 70% i voti e per il 30% i pomodori: serve a confrontare le sessioni, non a giudicarti.',
       'review.tryNext': 'Da provare la prossima volta',
+      'review.otherProblem': 'Altro',
+      'review.otherDescribe': 'Descrivi in breve cosa è successo',
+      'review.pickReason': 'Scegli almeno un motivo per ricevere un consiglio, oppure cambia il voto.',
+      'review.describeOther': 'Descrivi in breve il motivo indicato come "Altro".',
+      'quote': 'Mi alleno come se non avessi mai vinto e gareggio come se non avessi mai perso.',
     },
 
     en: {
@@ -273,6 +278,11 @@
       'review.scoreEmpty': 'Rate at least one area to see your final score.',
       'review.scoreDetail': 'Areas rated: {rated} of {total}, average {areas}/100. Completed pomodoros: {done} of {pomodoros}. The score weighs ratings at 70% and pomodoros at 30%: it is meant to compare sessions, not to judge you.',
       'review.tryNext': 'To try next time',
+      'review.otherProblem': 'Other',
+      'review.otherDescribe': 'Briefly describe what happened',
+      'review.pickReason': 'Choose at least one reason to get a suggestion, or change the rating.',
+      'review.describeOther': 'Briefly describe the reason marked as "Other".',
+      'quote': 'I train like I\'ve never won and I compete like I\'ve never lost.',
     },
   };
 

@@ -109,3 +109,53 @@ test('invalid saved data is discarded', () => {
   assert.equal(clean.worked, 'ok');
   assert.deepEqual(R.normalizeReview(null), R.emptyReview());
 });
+
+test('every area has a general suggestion in both languages', () => {
+  for (const area of R.AREAS) {
+    assert.ok(filled(area.general.it) && filled(area.general.en), area.id);
+  }
+});
+
+test('a low rating requires a reason, and "Other" requires a description', () => {
+  assert.equal(R.missingReason(review(), 'fisico'), null);
+  assert.equal(R.missingReason(review({ ratings: { fisico: 4 } }), 'fisico'), null);
+  assert.equal(R.missingReason(review({ ratings: { fisico: 3 } }), 'fisico'), 'reason');
+  assert.equal(R.missingReason(review({ ratings: { fisico: 2 }, problems: { fisico: ['fame'] } }), 'fisico'), null);
+  assert.equal(R.missingReason(review({ ratings: { fisico: 2 }, problems: { fisico: [R.OTHER_ID] } }), 'fisico'), 'other');
+  assert.equal(R.missingReason(review({
+    ratings: { fisico: 2 },
+    problems: { fisico: [R.OTHER_ID] },
+    otherByArea: { fisico: '   ' },
+  }), 'fisico'), 'other');
+  assert.equal(R.missingReason(review({
+    ratings: { fisico: 2 },
+    problems: { fisico: [R.OTHER_ID] },
+    otherByArea: { fisico: 'Mal di testa' },
+  }), 'fisico'), null);
+});
+
+test('an "Other" reason in an area gets the general suggestion of that area', () => {
+  const data = review({
+    ratings: { fisico: 2 },
+    problems: { fisico: ['fame', R.OTHER_ID] },
+    otherByArea: { fisico: ' Mal di testa ' },
+  });
+  const items = R.selectedSolutions(data);
+  assert.equal(items.length, 2);
+  assert.deepEqual(items[1], { area: 'Fisico', problem: 'Mal di testa', solution: R.AREAS.find((a) => a.id === 'fisico').general.it });
+  assert.equal(R.selectedSolutions(data, 'en')[1].solution, R.AREAS.find((a) => a.id === 'fisico').general.en);
+});
+
+test('an "Other" reason without a description gives no suggestion', () => {
+  const items = R.selectedSolutions(review({ ratings: { fisico: 2 }, problems: { fisico: [R.OTHER_ID] } }));
+  assert.equal(items.length, 0);
+});
+
+test('saved "Other" descriptions are kept only for known areas', () => {
+  const clean = R.normalizeReview({
+    problems: { fisico: [R.OTHER_ID, 'fame'] },
+    otherByArea: { fisico: 'Mal di testa', inesistente: 'x', mentale: 42 },
+  });
+  assert.deepEqual(clean.problems, { fisico: [R.OTHER_ID, 'fame'] });
+  assert.deepEqual(clean.otherByArea, { fisico: 'Mal di testa' });
+});

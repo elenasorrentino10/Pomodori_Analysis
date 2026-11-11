@@ -32,7 +32,7 @@ A study day planner with a pomodoro timer. Enter your start time, your end time 
 - Progress and timers saved in the browser: when you reload the page, the timer resumes.
 - Undo for the last change.
 - A sticky note on the side for the thoughts that come up while you study.
-- A guided reflection at the end of the session, in a side panel with one area at a time: a rating for each area (emotional, physical, mental, environment, digital, organization, study material, motivation, people and unexpected events), the problems that came up and practical suggestions.
+- A guided reflection at the end of the session, in a side panel with one area at a time: a rating for each area (emotional, physical, mental, environment, digital, organization, study material, motivation, people and unexpected events), the problems that came up and practical suggestions. With a rating of 3 or lower you choose at least one reason before moving on, and each area also has an "Other" option: you describe what happened and get a general suggestion for that area.
 - A final score out of 100, based 70% on the ratings and 30% on the completed pomodoros.
 - English and Italian interface, chosen from the browser language and switchable at any time.
 
