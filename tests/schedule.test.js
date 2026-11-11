@@ -6,19 +6,19 @@ const settings = (overrides = {}) => S.normalizeSettings({ ...S.DEFAULT_SETTINGS
 const noMeal = { meals: [] };
 const mealAt = (time, min = 60) => ({ meals: [{ time, min }] });
 
-test('la conversione degli orari gestisce la mezzanotte', () => {
+test('time conversion handles midnight', () => {
   assert.equal(S.toMinutes('14:30'), 870);
   assert.equal(S.toHHMM(870), '14:30');
   assert.equal(S.toHHMM(1445), '00:05');
   assert.equal(S.toHHMM(-5), '23:55');
 });
 
-test('il formato del conto alla rovescia non scende sotto zero', () => {
+test('the countdown format never goes below zero', () => {
   assert.equal(S.fmtMMSS(125), '02:05');
   assert.equal(S.fmtMMSS(-3), '00:00');
 });
 
-test('un intervallo vuoto o di durata nulla non è valido', () => {
+test('an empty or zero-length range is not valid', () => {
   assert.equal(S.isValidRange('10:00', '10:25'), true);
   assert.equal(S.isValidRange('', '10:25'), false);
   assert.equal(S.isValidRange('10:00', ''), false);
@@ -26,11 +26,11 @@ test('un intervallo vuoto o di durata nulla non è valido', () => {
   assert.equal(S.isValidRange('25:00', '26:00'), false);
 });
 
-test('un intervallo che scavalca la mezzanotte ha la durata corretta', () => {
+test('a range crossing midnight has the right length', () => {
   assert.equal(S.durationSeconds({ start: '23:50', end: '00:15' }), 25 * 60);
 });
 
-test('dalle 9 alle 18 con pasto alle 13 calcola i pomodori prima e dopo', () => {
+test('from 9 to 18 with a meal at 13 the pomodoros before and after are calculated', () => {
   const plan = S.computePlan(settings());
   assert.equal(plan.windowMin, 540);
   assert.deepEqual(plan.segments.map((s) => s.count), [8, 8]);
@@ -40,7 +40,7 @@ test('dalle 9 alle 18 con pasto alle 13 calcola i pomodori prima e dopo', () => 
   assert.equal(plan.finish, '17:55');
 });
 
-test('la pausa pasto inizia esattamente all\'ora scelta', () => {
+test('the meal break starts exactly at the chosen time', () => {
   for (const time of ['11:17', '12:00', '13:00', '15:40']) {
     const meals = S.generateItems(settings(mealAt(time))).filter((i) => i.meal);
     assert.equal(meals.length, 1, time);
@@ -49,7 +49,7 @@ test('la pausa pasto inizia esattamente all\'ora scelta', () => {
   }
 });
 
-test('si possono inserire più pause pasto con durate diverse', () => {
+test('several meal breaks with different lengths can be added', () => {
   const s = settings({
     end: '22:00',
     meals: [{ time: '19:30', min: 45 }, { time: '13:00', min: 60 }],
@@ -62,7 +62,7 @@ test('si possono inserire più pause pasto con durate diverse', () => {
   assert.deepEqual(meals.map((m) => [m.start, m.end]), [['13:00', '14:00'], ['19:30', '20:15']]);
 });
 
-test('con più pause pasto i blocchi restano in ordine e la numerazione è continua', () => {
+test('with several meal breaks blocks stay in order and numbering is continuous', () => {
   const items = S.generateItems(settings({
     end: '22:00',
     meals: [{ time: '13:00', min: 60 }, { time: '19:30', min: 45 }],
@@ -76,14 +76,14 @@ test('con più pause pasto i blocchi restano in ordine e la numerazione è conti
   assert.deepEqual(numbers, numbers.map((_, i) => i + 1));
 });
 
-test('nessun pomodoro si sovrappone alla pausa pasto', () => {
+test('no pomodoro overlaps the meal break', () => {
   const items = S.generateItems(settings(mealAt('11:17')));
   const mealIndex = items.findIndex((i) => i.meal);
   assert.ok(S.toMinutes(items[mealIndex - 1].end) <= S.toMinutes('11:17'));
   assert.equal(items[mealIndex + 1].start, '12:17');
 });
 
-test('due pause pasto sovrapposte vengono segnalate', () => {
+test('two overlapping meal breaks are reported', () => {
   const overlap = S.computePlan(settings({ meals: [{ time: '13:00', min: 60 }, { time: '13:30', min: 30 }] }));
   assert.equal(overlap.mealError, 'overlap');
   assert.equal(overlap.count, 0);
@@ -91,7 +91,7 @@ test('due pause pasto sovrapposte vengono segnalate', () => {
   assert.equal(touching.mealError, null);
 });
 
-test('una pausa pasto fuori dalla giornata viene segnalata', () => {
+test('a meal break outside the day is reported', () => {
   assert.equal(S.computePlan(settings(mealAt('08:00'))).mealError, 'outside');
   assert.equal(S.computePlan(settings(mealAt('18:30'))).mealError, 'outside');
   assert.equal(S.computePlan(settings(mealAt('17:30'))).mealError, 'outside');
@@ -99,7 +99,7 @@ test('una pausa pasto fuori dalla giornata viene segnalata', () => {
   assert.equal(S.computePlan(settings(mealAt('17:00'))).mealError, null);
 });
 
-test('il programma generato non supera mai l\'ora di fine', () => {
+test('the generated plan never goes past the end time', () => {
   for (const end of ['10:00', '12:00', '13:00', '18:00', '23:59']) {
     const s = settings({ end, ...noMeal });
     const items = S.generateItems(s);
@@ -110,13 +110,13 @@ test('il programma generato non supera mai l\'ora di fine', () => {
   assert.ok(S.toMinutes(withMeal[withMeal.length - 1].end) <= S.toMinutes('16:10'));
 });
 
-test('un pomodoro in più non entrerebbe nella finestra', () => {
+test('one more pomodoro would not fit in the window', () => {
   const plan = S.computePlan(settings({ end: '12:00', ...noMeal }));
   assert.equal(plan.count, 6);
   assert.equal(plan.finish, '11:55');
 });
 
-test('il programma alterna pomodori e pause, senza pausa finale', () => {
+test('the plan alternates pomodoros and breaks, with no final break', () => {
   const items = S.generateItems(settings({ end: '10:30', ...noMeal }));
   assert.deepEqual(items.map((i) => i.type), ['pomodoro', 'pausa', 'pomodoro', 'pausa', 'pomodoro']);
   assert.equal(items[0].start, '09:00');
@@ -124,7 +124,7 @@ test('il programma alterna pomodori e pause, senza pausa finale', () => {
   assert.equal(items[1].end, '09:30');
 });
 
-test('senza pause pasto o con durata zero non viene inserita alcuna pausa pasto', () => {
+test('without meal breaks or with zero length no meal break is added', () => {
   const empty = S.computePlan(settings(noMeal));
   assert.equal(empty.hasMeal, false);
   assert.deepEqual(empty.mealStarts, []);
@@ -134,7 +134,7 @@ test('senza pause pasto o con durata zero non viene inserita alcuna pausa pasto'
   assert.equal(zero.count, 18);
 });
 
-test('la pausa pasto può stare all\'inizio o alla fine della giornata', () => {
+test('a meal break can be at the start or the end of the day', () => {
   const first = S.generateItems(settings(mealAt('09:00')));
   assert.equal(first[0].meal, true);
   assert.equal(first[1].start, '10:00');
@@ -143,7 +143,7 @@ test('la pausa pasto può stare all\'inizio o alla fine della giornata', () => {
   assert.equal(S.computePlan(settings(mealAt('17:00'))).finish, '18:00');
 });
 
-test('le pause di zero minuti non creano timer da 24 ore', () => {
+test('zero-minute breaks do not create 24-hour timers', () => {
   const s = settings({ end: '10:15', pausa: 0, ...noMeal });
   const items = S.generateItems(s);
   assert.equal(items.length, 3);
@@ -152,7 +152,7 @@ test('le pause di zero minuti non creano timer da 24 ore', () => {
   assert.equal(S.computePlan(s).shortBreaks, 0);
 });
 
-test('una giornata che scavalca la mezzanotte viene calcolata', () => {
+test('a day crossing midnight is calculated', () => {
   const plan = S.computePlan(settings({ start: '22:00', end: '01:00', ...noMeal }));
   assert.equal(plan.windowMin, 180);
   assert.equal(plan.count, 6);
@@ -165,20 +165,20 @@ test('una giornata che scavalca la mezzanotte viene calcolata', () => {
   assert.equal(S.generateItems(night).find((i) => i.meal).end, '01:30');
 });
 
-test('inizio e fine uguali o finestra troppo breve non producono pomodori', () => {
+test('equal start and end or a too short window produce no pomodoros', () => {
   assert.equal(S.computePlan(settings({ end: '09:00', ...noMeal })).count, 0);
   assert.equal(S.computePlan(settings({ end: '09:10', ...noMeal })).count, 0);
   assert.equal(S.generateItems(settings({ end: '09:10', ...noMeal })).length, 0);
 });
 
-test('il numero di pomodori ha un limite massimo segnalato', () => {
+test('the number of pomodoros has a reported maximum', () => {
   const plan = S.computePlan(settings({ start: '00:00', end: '23:59', pomo: 5, pausa: 0, ...noMeal }));
   assert.equal(plan.count, 50);
   assert.equal(plan.capped, true);
   assert.equal(S.computePlan(settings()).capped, false);
 });
 
-test('l\'orario proposto per una nuova pausa è libero e allineato ai 5 minuti', () => {
+test('the suggested time for a new break is free and aligned to 5 minutes', () => {
   assert.equal(S.suggestMealTime(settings(noMeal)), '13:00');
 
   const s = settings({ end: '22:00' });
@@ -189,13 +189,13 @@ test('l\'orario proposto per una nuova pausa è libero e allineato ai 5 minuti',
   assert.equal(S.computePlan(next).mealStarts.length, 2);
 });
 
-test('senza spazio libero non viene proposto alcun orario', () => {
+test('without free time no time is suggested', () => {
   assert.equal(S.suggestMealTime(settings({ end: '09:30', ...noMeal })), null);
   assert.equal(S.suggestMealTime(settings({ end: '09:00', ...noMeal })), null);
   assert.equal(S.suggestMealTime(settings({ meals: [{ time: '13:00', min: 60 }, { time: '13:30', min: 30 }] })), null);
 });
 
-test('le impostazioni vengono riportate nei limiti', () => {
+test('settings are brought within limits', () => {
   const s = S.normalizeSettings({ start: 'x', end: '', pomo: 0, pausa: '', meals: [{ time: 'abc', min: 10 }, { time: '12:00', min: 999 }, { time: '14:00', min: '' }] });
   assert.equal(s.start, S.DEFAULT_SETTINGS.start);
   assert.equal(s.end, S.DEFAULT_SETTINGS.end);
@@ -208,7 +208,7 @@ test('le impostazioni vengono riportate nei limiti', () => {
   assert.equal(S.normalizeSettings({ meals: many }).meals.length, S.MAX_MEALS);
 });
 
-test('le spunte si conservano quando si ricalcola il programma', () => {
+test('checkmarks are kept when the plan is rebuilt', () => {
   const old = S.generateItems(settings({ end: '10:00', ...noMeal }));
   old[0].checked = true;
   const merged = S.mergeProgress(old, S.generateItems(settings({ end: '11:00', ...noMeal })));
@@ -218,7 +218,7 @@ test('le spunte si conservano quando si ricalcola il programma', () => {
   assert.ok(pomodori.slice(1).every((i) => i.checked === false));
 });
 
-test('le note restano sul blocco dello stesso tipo quando si ricalcola', () => {
+test('notes stay on the block of the same type when the plan is rebuilt', () => {
   const old = S.generateItems(settings({ end: '18:00' }));
   const firstPomodoro = old.find((i) => i.type === 'pomodoro');
   const firstBreak = old.find((i) => i.type === 'pausa' && !i.meal);
@@ -234,13 +234,7 @@ test('le note restano sul blocco dello stesso tipo quando si ricalcola', () => {
   assert.equal(merged.filter((i) => i.note).length, 3);
 });
 
-test('il messaggio di fine concorda con il tipo di blocco', () => {
-  assert.equal(S.finishedLabel({ type: 'pomodoro', n: 3 }), 'Pomodoro 3 terminato');
-  assert.equal(S.finishedLabel({ type: 'pausa', meal: false }), 'Pausa terminata');
-  assert.equal(S.finishedLabel({ type: 'pausa', meal: true }), 'Pausa pasto terminata');
-});
-
-test('uno stato salvato danneggiato viene rifiutato', () => {
+test('a damaged saved state is rejected', () => {
   const good = { settings: settings(), items: S.generateItems(settings({ end: '09:30', ...noMeal })) };
   assert.equal(S.isValidState(good), true);
   assert.equal(S.isValidState(null), false);

@@ -22,7 +22,7 @@ body {
 
 :focus-visible { outline: 2px solid var(--pomo); outline-offset: 2px; }
 
-/* Struttura */
+/* Layout */
 
 .layout {
   display: grid;
@@ -36,6 +36,8 @@ main { grid-area: main; min-width: 0; }
 .side { grid-area: side; }
 
 h1 { font-size: 1.4rem; margin: 0 0 4px; }
+.header-top { display: flex; align-items: center; justify-content: space-between; gap: 12px; }
+.lang-btn { padding: 6px 12px; font-size: 0.8rem; letter-spacing: 0.04em; }
 .sub { color: var(--muted); font-size: 0.9rem; margin: 0 0 12px; }
 
 .howto {
@@ -77,7 +79,7 @@ button {
 .btn-primary:hover, .btn-secondary:hover { opacity: 0.9; }
 button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-/* Blocco corrente */
+/* Current block */
 
 .now {
   display: flex;
@@ -99,7 +101,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .now-btn { min-width: 104px; padding: 12px 18px; font-size: 0.95rem; }
 .keep-open { margin: 6px 2px 14px; font-size: 0.76rem; color: var(--muted); }
 
-/* Programma */
+/* Plan */
 
 .planner {
   background: var(--card);
@@ -164,7 +166,7 @@ button:disabled { opacity: 0.4; cursor: not-allowed; }
 .status { margin: 0 0 8px; font-size: 0.85rem; color: var(--muted); }
 .status:empty { display: none; }
 
-/* Lista dei blocchi */
+/* Block list */
 
 .row {
   display: flex;
@@ -246,7 +248,7 @@ input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--pomo); cur
   resize: vertical;
 }
 
-/* Colonna laterale */
+/* Side column */
 
 .side { display: none; }
 .side.open {
@@ -322,7 +324,7 @@ input[type=checkbox] { width: 20px; height: 20px; accent-color: var(--pomo); cur
   .mobile-bar { display: none; }
 }
 
-/* Riflessione a comparsa */
+/* Reflection panel */
 
 dialog.review {
   width: min(440px, 100vw);

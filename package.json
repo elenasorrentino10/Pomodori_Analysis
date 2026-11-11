@@ -1,7 +1,7 @@
 {
   "name": "pomodori",
   "version": "1.0.0",
-  "description": "Pianificatore di giornate di studio con timer pomodoro, senza dipendenze.",
+  "description": "Study day planner with a pomodoro timer, in English and Italian, with no dependencies.",
   "private": true,
   "license": "MIT",
   "scripts": {

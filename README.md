@@ -1,106 +1,108 @@
 # 🍅 Pomodori
 
-Pianificatore di giornate di studio con timer pomodoro. Inserisci l'ora di inizio, l'ora di fine e quando vuoi fare le pause pasto: pomodori e pause vengono calcolati in automatico, con una campanella alla fine di ogni blocco.
+A study day planner with a pomodoro timer. Enter your start time, your end time and when you want your meal breaks: pomodoros and breaks are calculated automatically, with a bell at the end of each block. The app is available in English and Italian.
 
-**[Prova la demo online](https://elenasorrentino10.github.io/Pomodori_Analysis/)**
+**[Try the online demo](https://elenasorrentino10.github.io/Pomodori_Analysis/)**
 
-![Schermata di Pomodori con il blocco corrente in evidenza, il programma della giornata, la lista di pomodori e pause e il post-it laterale](docs/screenshot.png)
+![Pomodori with the day plan, the current block highlighted, the list of pomodoros and breaks, and the sticky note on the side](docs/screenshot.png)
 
 > [!WARNING]
-> **I tuoi dati restano solo in questo browser, su questo dispositivo.** Non c'è un account e non esiste una copia online: programma, note, post-it e riflessione non vengono salvati da nessun'altra parte.
+> **Your data stays only in this browser, on this device.** There is no account and no online copy: your plan, notes, sticky note and reflection are not saved anywhere else.
 >
-> **Se chiudi la pagina o spegni il computer non perdi nulla:** riaprendo Pomodori nello stesso modo ritrovi tutto.
+> **Closing the page or turning off your computer does not lose anything:** open Pomodori the same way and everything is still there.
 >
-> **Perdi i dati se:**
-> - usi una finestra in incognito e la chiudi;
-> - cancelli i dati di navigazione del browser;
-> - sposti o riscarichi la cartella del progetto, oppure cambi indirizzo della pagina.
+> **You lose your data if you:**
+> - use a private window and close it;
+> - clear your browser data;
+> - move or download the project folder again, or open the page from a different address.
 >
-> **Non li ritrovi se** apri Pomodori con un altro browser o su un altro dispositivo.
+> **You will not find it** if you open Pomodori in another browser or on another device.
 >
-> Non esiste ancora uno storico: viene conservata una sola riflessione alla volta e "Azzera riflessione" la cancella. Se vuoi tenere qualcosa, copialo altrove.
+> There is no history yet: only one reflection is kept at a time, and "Reset reflection" deletes it. If you want to keep something, copy it somewhere else.
 
-## Funzionalità
+## Features
 
-- Blocco corrente in evidenza, con timer grande, pulsante Avvia/Pausa e blocco successivo.
-- Lista essenziale: ogni riga si apre per modificare gli orari, scrivere una nota o azzerare il timer.
-- Programma calcolato da ora di inizio e ora di fine: entrano tutti i pomodori e le pause che ci stanno, senza superare l'ora di fine.
-- Una o più pause pasto, ognuna con il proprio orario e la propria durata: iniziano esattamente all'ora scelta, senza spezzare un pomodoro.
-- Durate di pomodori e pause configurabili.
-- Orari modificabili direttamente nella lista.
-- Timer per ogni blocco, con campanella e avvio automatico del blocco successivo.
-- Notifiche facoltative quando la pagina non è in primo piano.
-- Progressi e timer salvati nel browser: ricaricando la pagina il timer riprende.
-- Annullamento dell'ultima modifica.
-- Note su ogni pomodoro e su ogni pausa.
-- Post-it laterale per annotare i pensieri che arrivano mentre studi.
-- Riflessione guidata a fine sessione, in un pannello a comparsa con un'area alla volta: un voto per area (emotiva, fisica, mentale, ambientale, digitale, organizzazione, materiale di studio, motivazione, persone e imprevisti), i problemi emersi e suggerimenti pratici.
-- Punteggio finale su 100, calcolato per il 70% dai voti e per il 30% dai pomodori completati.
+- Day plan built from a start and an end time: every pomodoro and break that fits is added, without going past the end time.
+- One or more meal breaks, each with its own time and length. They start exactly at the chosen time, without splitting a pomodoro.
+- Current block highlighted, with a large timer, a Start/Pause button and the next block.
+- A compact list: each row opens to edit its times, write a note or reset its timer.
+- Configurable pomodoro and break lengths.
+- A timer for every block, with a bell and an automatic start of the next block.
+- Optional notifications when the page is in the background.
+- Progress and timers saved in the browser: when you reload the page, the timer resumes.
+- Undo for the last change.
+- A sticky note on the side for the thoughts that come up while you study.
+- A guided reflection at the end of the session, in a side panel with one area at a time: a rating for each area (emotional, physical, mental, environment, digital, organization, study material, motivation, people and unexpected events), the problems that came up and practical suggestions.
+- A final score out of 100, based 70% on the ratings and 30% on the completed pomodoros.
+- English and Italian interface, chosen from the browser language and switchable at any time.
 
-Nessun dato lascia il browser: non ci sono account, server o librerie esterne.
+No data leaves the browser: there are no accounts, servers or external libraries.
 
-I suggerimenti della riflessione sono consigli generali di organizzazione dello studio e non sostituiscono il parere di un medico o di un professionista.
+The reflection suggestions are general study organization tips and do not replace the advice of a doctor or another professional.
 
-## Come usarlo
+## How to use it
 
-Apri la [demo online](https://elenasorrentino10.github.io/Pomodori_Analysis/), oppure scarica il repository e apri `index.html` nel browser: non serve installare nulla.
+Open the [online demo](https://elenasorrentino10.github.io/Pomodori_Analysis/), or download the repository and open `index.html` in your browser: nothing needs to be installed.
 
-La pagina deve restare aperta perché la campanella possa suonare. I browser possono rallentare le schede in background, quindi l'avviso può arrivare con qualche secondo di ritardo.
+To open the demo directly in one language, add `?lang=en` or `?lang=it` to the address.
 
-## Struttura
+The page must stay open for the bell to ring. Browsers can slow down background tabs, so the alert may arrive a few seconds late.
+
+## Project structure
 
 ```
-index.html            struttura della pagina
-style.css             stile
-app.js                timer, interfaccia e salvataggio
-schedule.js           logica degli orari, senza dipendenze dalla pagina
-review.js             domande, punteggio e suggerimenti della riflessione finale
-tests/                test della logica
+index.html            page structure
+style.css             styles
+app.js                timer, interface and saving
+schedule.js           scheduling logic, independent of the page
+review.js             questions, scoring and suggestions of the reflection
+i18n.js               interface text in English and Italian
+tests/                logic tests
 ```
 
-## Test
+## Tests
 
-Con Node.js 20 o superiore:
+With Node.js 20 or later:
 
 ```bash
 npm test
 ```
 
-## Sviluppi futuri
+## Future development
 
-Storico delle sessioni e statistiche, senza librerie esterne né account:
+Session history and statistics, without external libraries or accounts:
 
-- **Salvataggio:** un pulsante "Chiudi e salva sessione" in fondo alla riflessione, che registra data, pomodori previsti e completati, minuti di studio stimati, voti per area, problemi segnati, punteggio e risposte finali, poi azzera spunte e riflessione.
-- **Storico:** elenco delle sessioni con data, pomodori e punteggio, con dettagli ed eliminazione.
-- **Statistiche in breve**, con filtro per 7 giorni, 30 giorni o tutto: sessioni totali, ore di studio, percentuale di pomodori completati, punteggio medio e giorni consecutivi.
-- **Grafici sui pomodori:** completati e previsti per giorno, ore di studio per settimana.
-- **Grafici sulla riflessione:** andamento del punteggio, media per area, problemi più frequenti.
-- **Backup:** esportazione e importazione in un file, perché i dati restano nel browser. Il file conterrà risposte personali e non va pubblicato.
+- **Saving:** a "Close and save session" button at the end of the reflection, which records the date, planned and completed pomodoros, estimated study minutes, area ratings, selected problems, score and final answers, then resets checkmarks and reflection.
+- **History:** a list of sessions with date, pomodoros and score, with details and deletion.
+- **Quick statistics**, filtered by 7 days, 30 days or all time: total sessions, study hours, share of completed pomodoros, average score and consecutive days.
+- **Pomodoro charts:** completed and planned pomodoros per day, study hours per week.
+- **Reflection charts:** score over time, average per area, most frequent problems.
+- **Backup:** export and import to a file, because the data stays in the browser. The file will contain personal answers and should not be published.
 
-Le due immagini mostrano come potrebbero apparire le statistiche su 30, 60 e 90 giorni. **Sono esempi con dati simulati:** questa funzione non è ancora presente nell'app.
+The two images show how statistics over 30, 60 and 90 days could look. **They are examples with simulated data:** this feature is not in the app yet.
 
-![Esempio con dati simulati: barre dei pomodori completati ogni giorno negli ultimi 90 giorni, con una linea sulla media di 9,3 al giorno di studio e i totali per 30, 60 e 90 giorni](docs/esempio-utilizzo.png)
+![Example with simulated data: bars of the pomodoros completed each day in the last 90 days, with a line on the average of 9.3 per study day and the totals for 30, 60 and 90 days](docs/example-usage.png)
 
-![Esempio con dati simulati: tabella con il voto medio settimanale di ogni area della riflessione, dal rosso per i voti bassi al verde per quelli alti. A destra le medie su 30, 60 e 90 giorni e l'andamento: Mentale, Digitale e Organizzazione salgono di 0,6 punti, Fisico scende di 0,3 e Persone e imprevisti di 0,7](docs/esempio-aree.png)
+![Example with simulated data: table with the weekly average rating of each reflection area, from red for low ratings to green for high ones. On the right, the averages over 30, 60 and 90 days and the trend: Mental, Digital and Organization rise by 0.6 points, Physical drops by 0.3 and People and unexpected events by 0.7](docs/example-areas.png)
 
-**Lettura degli ultimi 30 giorni** *(esempio con dati simulati)*
+**Reading of the last 30 days** *(example with simulated data)*
 
-**Cosa sta migliorando:** Mentale, Digitale e Organizzazione crescono di 0,6 punti rispetto alla media degli ultimi 90 giorni. Annota cosa hai cambiato, così puoi continuare a farlo.
+**What is improving:** Mental, Digital and Organization are up 0.6 points compared with the average of the last 90 days. Write down what you changed so you can keep doing it.
 
-**Da cosa partire:**
+**Where to start:**
 
-1. **Persone e imprevisti (2,5, in calo di 0,7).** Comunica in anticipo gli orari di studio e proponi di rispondere nelle pause. Lascia anche un margine nel programma per gli imprevisti.
-2. **Fisico (3,3, in calo di 0,3).** Regola sedia e schermo, e usa le pause per alzarti e muoverti. Se il dolore persiste, parlane con un medico.
+1. **People and unexpected events (2.5, down 0.7).** Tell people your study hours in advance and offer to reply during breaks. Also leave some slack in the plan for the unexpected.
+2. **Physical (3.3, down 0.3).** Adjust your chair and screen, and use breaks to stand up and move. If the pain persists, talk to a doctor.
 
-> **Nota:** nell'app i consigli verranno scelti in base ai problemi segnati più spesso in ogni area, non solo in base al voto. Un voto basso su "Fisico", per esempio, può indicare stanchezza oppure mal di schiena, e le soluzioni sono diverse.
+> **Note:** in the app, suggestions will be chosen from the problems selected most often in each area, not only from the rating. A low "Physical" rating, for example, can mean tiredness or back pain, and the solutions are different.
 
-## Stato del progetto
+## Project status
 
-Prossimi passi:
+Next steps:
 
-- provare campanella e notifiche;
-- citare storico e statistiche nella descrizione del repository quando saranno disponibili nell'app.
+- test the bell and notifications;
+- mention history and statistics in the repository description once they are available in the app.
 
-## Licenza
+## License
 
 [MIT](LICENSE)

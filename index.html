@@ -3,10 +3,11 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="description" content="Pianificatore di giornate di studio con timer pomodoro: pause calcolate in automatico, note, post-it e riflessione finale.">
+  <meta name="description" content="Study day planner with a pomodoro timer: automatic breaks, notes, a sticky note and an end-of-session reflection. Available in English and Italian.">
   <title>Pomodori</title>
   <link rel="icon" href="data:image/svg+xml,<svg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 100 100'><text y='.9em' font-size='90'>🍅</text></svg>">
   <link rel="stylesheet" href="style.css">
+  <script src="i18n.js" defer></script>
   <script src="schedule.js" defer></script>
   <script src="review.js" defer></script>
   <script src="app.js" defer></script>
@@ -14,83 +15,86 @@
 <body>
   <div class="layout">
     <header class="page-header">
-      <h1><span aria-hidden="true">🍅</span> Pomodori</h1>
+      <div class="header-top">
+        <h1><span aria-hidden="true">🍅</span> Pomodori</h1>
+        <button type="button" class="btn-secondary lang-btn" id="langBtn" data-i18n="lang.switch" data-i18n-attr="aria-label:lang.switchLabel|title:lang.switchLabel">EN</button>
+      </div>
       <p class="sub" id="dateLabel"></p>
-      <section class="howto" id="howto" aria-label="Come funziona">
+      <section class="howto" id="howto" data-i18n-attr="aria-label:howto.label">
         <ol>
-          <li>Scegli <strong>orari</strong> e pause pasto.</li>
-          <li>Premi <strong>Avvia</strong>: pomodori e pause si susseguono da soli.</li>
-          <li>Alla fine <strong>rifletti</strong> sulla sessione e ricevi suggerimenti.</li>
+          <li data-i18n-html="howto.step1"></li>
+          <li data-i18n-html="howto.step2"></li>
+          <li data-i18n-html="howto.step3"></li>
         </ol>
-        <button type="button" class="icon-btn" id="howtoClose" aria-label="Chiudi la spiegazione" title="Chiudi">×</button>
+        <button type="button" class="icon-btn" id="howtoClose" data-i18n-attr="aria-label:howto.close|title:common.close">×</button>
       </section>
     </header>
 
-    <aside class="side" id="side" aria-label="Post-it e riflessione">
+    <aside class="side" id="side" data-i18n-attr="aria-label:side.label">
       <div class="postit">
-        <label for="postitText"><span aria-hidden="true">📌</span> Post-it</label>
-        <textarea id="postitText" placeholder="Scrivi qui quello che ti viene in mente, poi torna al compito."></textarea>
+        <label for="postitText"><span aria-hidden="true">📌</span> <span data-i18n="postit.label"></span></label>
+        <textarea id="postitText" data-i18n-attr="placeholder:postit.placeholder"></textarea>
       </div>
       <blockquote class="quote" lang="en">I train like I've never won and I compete like I've never lost.</blockquote>
-      <button type="button" class="btn-secondary side-review" id="openReviewBtn">Com'è andata la sessione?</button>
+      <button type="button" class="btn-secondary side-review" id="openReviewBtn" data-i18n="review.open"></button>
     </aside>
 
     <main>
-      <section class="planner" aria-label="Programma della giornata">
+      <section class="planner" data-i18n-attr="aria-label:planner.label">
         <div class="plan-compact">
           <p id="planCompactText"></p>
-          <button type="button" class="btn-secondary" id="planEditBtn" aria-controls="planEditor">Modifica</button>
+          <button type="button" class="btn-secondary" id="planEditBtn" aria-controls="planEditor"></button>
         </div>
 
         <div id="planEditor">
           <div class="planner-fields">
             <div class="field">
-              <label for="s_start">Ora di inizio</label>
+              <label for="s_start" data-i18n="planner.start"></label>
               <input type="time" id="s_start">
             </div>
             <div class="field">
-              <label for="s_end">Ora di fine</label>
+              <label for="s_end" data-i18n="planner.end"></label>
               <input type="time" id="s_end">
             </div>
           </div>
           <div id="mealList"></div>
           <div class="planner-actions">
-            <button type="button" class="btn-secondary" id="addMealBtn">+ Aggiungi pausa pasto</button>
-            <button type="button" class="btn-primary" id="regenBtn">Calcola programma</button>
+            <button type="button" class="btn-secondary" id="addMealBtn" data-i18n="planner.addMeal"></button>
+            <button type="button" class="btn-primary" id="regenBtn" data-i18n="planner.calculate"></button>
           </div>
           <p class="plan-summary" id="planSummary" aria-live="polite"></p>
 
           <details class="settings" id="settingsBox">
-            <summary>Altre impostazioni</summary>
+            <summary data-i18n="settings.title"></summary>
             <div class="grid">
               <div class="field">
-                <label for="s_pomo">Durata pomodoro (min)</label>
+                <label for="s_pomo" data-i18n="settings.pomo"></label>
                 <input type="number" id="s_pomo" min="1" max="120">
               </div>
               <div class="field">
-                <label for="s_pausa">Pausa breve (min)</label>
+                <label for="s_pausa" data-i18n="settings.break"></label>
                 <input type="number" id="s_pausa" min="0" max="60">
               </div>
               <div class="field checkfield">
                 <input type="checkbox" id="s_autoAdvance">
-                <label for="s_autoAdvance">Avvia automaticamente il blocco successivo</label>
+                <label for="s_autoAdvance" data-i18n="settings.autoAdvance"></label>
               </div>
               <div class="field checkfield">
                 <input type="checkbox" id="s_notify">
-                <label for="s_notify">Notifiche quando la pagina non è in primo piano</label>
+                <label for="s_notify" data-i18n="settings.notify"></label>
               </div>
             </div>
             <div class="settings-actions">
-              <button type="button" class="btn-secondary" id="resetChecksBtn">Azzera spunte</button>
-              <button type="button" class="btn-secondary" id="undoBtn" disabled>↩ Annulla</button>
-              <button type="button" class="btn-secondary" id="restoreDefaultBtn">Ripristina impostazioni predefinite</button>
-              <button type="button" class="btn-secondary" id="testBellBtn"><span aria-hidden="true">🔔</span> Prova campanella</button>
+              <button type="button" class="btn-secondary" id="resetChecksBtn" data-i18n="settings.resetChecks"></button>
+              <button type="button" class="btn-secondary" id="undoBtn" disabled data-i18n="settings.undo"></button>
+              <button type="button" class="btn-secondary" id="restoreDefaultBtn" data-i18n="settings.restore"></button>
+              <button type="button" class="btn-secondary" id="testBellBtn"><span aria-hidden="true">🔔</span> <span data-i18n="settings.testBell"></span></button>
             </div>
           </details>
         </div>
       </section>
 
-      <section class="now" id="nowCard" aria-label="Blocco corrente">
+      <section class="now" id="nowCard" data-i18n-attr="aria-label:now.label">
         <div class="now-info">
           <p class="now-kicker" id="nowKicker"></p>
           <h2 id="nowName"></h2>
@@ -101,11 +105,11 @@
           <button type="button" class="btn-primary now-btn" id="nowBtn"></button>
         </div>
       </section>
-      <p class="keep-open">Tieni la pagina aperta perché la campanella possa suonare.</p>
+      <p class="keep-open" data-i18n="now.keepOpen"></p>
 
       <div class="progress">
         <span id="progressLabel">0/0</span>
-        <div class="bar" id="progressBar" role="progressbar" aria-label="Pomodori completati" aria-valuemin="0">
+        <div class="bar" id="progressBar" role="progressbar" data-i18n-attr="aria-label:progress.label" aria-valuemin="0">
           <div class="bar-fill" id="progressFill"></div>
         </div>
       </div>
@@ -116,43 +120,43 @@
     </main>
   </div>
 
-  <nav class="mobile-bar" aria-label="Strumenti">
-    <button type="button" class="btn-secondary" id="mobilePostitBtn" aria-controls="side" aria-expanded="false"><span aria-hidden="true">📌</span> Post-it</button>
-    <button type="button" class="btn-secondary" id="mobileReviewBtn">Com'è andata?</button>
+  <nav class="mobile-bar" data-i18n-attr="aria-label:tools.label">
+    <button type="button" class="btn-secondary" id="mobilePostitBtn" aria-controls="side" aria-expanded="false"><span aria-hidden="true">📌</span> <span data-i18n="postit.label"></span></button>
+    <button type="button" class="btn-secondary" id="mobileReviewBtn" data-i18n="review.openShort"></button>
   </nav>
 
   <dialog class="review" id="reviewDialog" aria-labelledby="reviewTitle">
     <div class="review-head">
-      <h2 id="reviewTitle">Com'è andata la sessione?</h2>
-      <button type="button" class="icon-btn" id="reviewClose" aria-label="Chiudi la riflessione" title="Chiudi">×</button>
+      <h2 id="reviewTitle" data-i18n="review.title"></h2>
+      <button type="button" class="icon-btn" id="reviewClose" data-i18n-attr="aria-label:review.close|title:common.close">×</button>
     </div>
     <p class="review-step-label" id="reviewStepLabel" aria-live="polite"></p>
     <div class="bar"><div class="bar-fill" id="reviewProgress"></div></div>
-    <p class="review-intro" id="reviewIntro">Dai un voto da 1 (molto male) a 5 (molto bene). Con un voto fino a 3 puoi indicare cosa non ha funzionato e ricevere un suggerimento. Puoi saltare le aree che non ti interessano.</p>
+    <p class="review-intro" id="reviewIntro" data-i18n="review.intro"></p>
 
     <div class="review-body">
       <div id="reviewAreas"></div>
 
       <div class="review-area review-step" id="reviewOther">
-        <h3>Altro</h3>
+        <h3 data-i18n="review.other"></h3>
         <div class="field">
-          <label for="r_other">C'è altro che ha influito sulla sessione?</label>
+          <label for="r_other" data-i18n="review.otherQuestion"></label>
           <textarea id="r_other" rows="3"></textarea>
         </div>
         <div class="field">
-          <label for="r_otherSolution">Che cosa potresti provare?</label>
+          <label for="r_otherSolution" data-i18n="review.otherSolution"></label>
           <textarea id="r_otherSolution" rows="3"></textarea>
         </div>
       </div>
 
       <div class="review-area review-step" id="reviewClosing">
-        <h3>Per chiudere</h3>
+        <h3 data-i18n="review.closing"></h3>
         <div class="field">
-          <label for="r_worked">Che cosa ha funzionato?</label>
+          <label for="r_worked" data-i18n="review.worked"></label>
           <textarea id="r_worked" rows="3"></textarea>
         </div>
         <div class="field">
-          <label for="r_change">Che cosa cambierai la prossima volta?</label>
+          <label for="r_change" data-i18n="review.change"></label>
           <textarea id="r_change" rows="3"></textarea>
         </div>
       </div>
@@ -160,13 +164,13 @@
       <div class="review-step" id="reviewResult">
         <div class="score" id="reviewScore" aria-live="polite"></div>
         <div id="reviewSolutions"></div>
-        <button type="button" class="btn-secondary" id="resetReviewBtn">Azzera riflessione</button>
+        <button type="button" class="btn-secondary" id="resetReviewBtn" data-i18n="review.reset"></button>
       </div>
     </div>
 
     <div class="review-nav">
-      <button type="button" class="btn-secondary" id="reviewBack">Indietro</button>
-      <button type="button" class="btn-primary" id="reviewNext">Avanti</button>
+      <button type="button" class="btn-secondary" id="reviewBack" data-i18n="review.back"></button>
+      <button type="button" class="btn-primary" id="reviewNext"></button>
     </div>
   </dialog>
 </body>

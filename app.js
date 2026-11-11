@@ -1,6 +1,7 @@
 (function () {
   const S = window.Schedule;
   const R = window.Review;
+  const L = window.I18n;
 
   const STATE_KEY = 'pomodori.state.v1';
   const BACKUP_KEY = 'pomodori.backup.v1';
@@ -8,6 +9,7 @@
   const POSTIT_KEY = 'pomodori.postit.v1';
   const REVIEW_KEY = 'pomodori.review.v1';
   const HOWTO_KEY = 'pomodori.howtoClosed.v1';
+  const LANG_KEY = 'pomodori.lang.v1';
   const AUTO_ADVANCE_DELAY_MS = 1600;
   const REVIEW_PROMPT_DELAY_MS = 2000;
 
@@ -26,14 +28,61 @@
     try {
       localStorage.setItem(key, JSON.stringify(value));
     } catch (e) {
-      setStatus('Non è stato possibile salvare i dati in questo browser.');
+      setStatus(t('status.saveFailed'));
     }
   }
 
   function removeKey(key) {
     try {
       localStorage.removeItem(key);
-    } catch (e) { /* nessun dato da rimuovere */ }
+    } catch (e) { /* nothing to remove */ }
+  }
+
+  /* Language */
+
+  let lang = L.detect(
+    new URLSearchParams(window.location.search).get('lang'),
+    readJSON(LANG_KEY),
+    navigator.language,
+  );
+
+  const t = (key, params) => L.translate(lang, key, params);
+  const nameOf = (item) => L.itemName(item, lang);
+
+  // Static text in the page: data-i18n (text), data-i18n-html (trusted markup), data-i18n-attr ("attr:key|attr:key").
+  function applyStaticText() {
+    document.documentElement.lang = lang;
+    document.querySelectorAll('[data-i18n]').forEach((el) => {
+      el.textContent = t(el.dataset.i18n);
+    });
+    document.querySelectorAll('[data-i18n-html]').forEach((el) => {
+      el.innerHTML = t(el.dataset.i18nHtml);
+    });
+    document.querySelectorAll('[data-i18n-attr]').forEach((el) => {
+      el.dataset.i18nAttr.split('|').forEach((pair) => {
+        const [attr, key] = pair.split(':');
+        el.setAttribute(attr, t(key));
+      });
+    });
+    $('dateLabel').textContent = new Date().toLocaleDateString(t('locale'), {
+      weekday: 'long',
+      day: 'numeric',
+      month: 'long',
+      year: 'numeric',
+    });
+  }
+
+  function setLanguage(next) {
+    lang = next;
+    writeJSON(LANG_KEY, lang);
+    applyStaticText();
+    setPlanEditorOpen(!$('planEditor').hidden);
+    updateMealControls();
+    updatePlanSummary();
+    updatePlanCompact();
+    rebuildReviewAreas();
+    setStatus('');
+    render();
   }
 
   function setStatus(message) {
@@ -49,7 +98,7 @@
   const savedBackup = readJSON(BACKUP_KEY);
   let backup = S.isValidState(savedBackup) ? savedBackup : null;
 
-  let timerState = {}; // indice -> { remaining, running, endTime }
+  let timerState = {}; // index -> { remaining, running, endTime }
   let activeIdx = null;
   let intervalId = null;
   let pendingAdvanceId = null;
@@ -82,7 +131,7 @@
     $('undoBtn').disabled = !backup;
   }
 
-  /* Audio e notifiche */
+  /* Sound and notifications */
 
   function getAudioCtx() {
     if (!audioCtx) {
@@ -112,7 +161,7 @@
         osc.stop(now + offset + 0.35);
       });
     } catch (e) {
-      console.warn('Audio non disponibile', e);
+      console.warn('Audio not available', e);
     }
   }
 
@@ -121,11 +170,11 @@
     if (!('Notification' in window) || Notification.permission !== 'granted') return;
     try {
       const next = items[idx + 1];
-      new Notification(S.finishedLabel(items[idx]), {
-        body: next ? 'Prossimo: ' + S.itemName(next) : 'Programma completato',
+      new Notification(L.finishedLabel(items[idx], lang), {
+        body: next ? t('notify.next', { name: nameOf(next) }) : t('notify.done'),
       });
     } catch (e) {
-      console.warn('Notifica non disponibile', e);
+      console.warn('Notification not available', e);
     }
   }
 
@@ -138,7 +187,7 @@
     }
     if (!('Notification' in window)) {
       box.checked = false;
-      setStatus('Questo browser non supporta le notifiche.');
+      setStatus(t('notify.unsupported'));
       return;
     }
     let permission = Notification.permission;
@@ -151,12 +200,12 @@
       box.checked = false;
       settings.notify = false;
       saveState();
-      setStatus('Notifiche non autorizzate: puoi attivarle dalle impostazioni del browser.');
+      setStatus(t('notify.denied'));
       return;
     }
     settings.notify = true;
     saveState();
-    setStatus('Notifiche attivate.');
+    setStatus(t('notify.enabled'));
   }
 
   /* Timer */
@@ -256,7 +305,7 @@
     playBell();
     notifyFinished(idx);
     markDone(idx);
-    setStatus(S.finishedLabel(items[idx]) + '.');
+    setStatus(t('status.finished', { label: L.finishedLabel(items[idx], lang) }));
     render();
 
     const rowEl = document.querySelector('[data-row-idx="' + idx + '"]');
@@ -280,7 +329,7 @@
     }
   }
 
-  // Il blocco da mostrare in evidenza: quello attivo, in pausa o il primo ancora da fare.
+  // The block to highlight: the running one, a paused one, or the first one still to do.
   function currentIdx() {
     if (activeIdx !== null) return activeIdx;
     const paused = items.findIndex((item, idx) => {
@@ -297,7 +346,7 @@
     return last + 1 < items.length ? last + 1 : null;
   }
 
-  // Riprende il timer dopo un ricaricamento della pagina.
+  // Resumes the timer after the page is reloaded.
   function restoreTimers() {
     const saved = readJSON(TIMERS_KEY);
     if (!saved || typeof saved.timers !== 'object' || saved.timers === null) return;
@@ -312,17 +361,17 @@
         timerState[idx] = { remaining: Math.ceil(leftMs / 1000), running: true, endTime: st.endTime };
         activeIdx = idx;
         runTicks(idx);
-        setStatus('Timer ripreso: ' + S.itemName(items[idx]) + '.');
+        setStatus(t('status.resumed', { name: nameOf(items[idx]) }));
       } else {
         timerState[idx].remaining = 0;
         markDone(idx);
-        setStatus(S.finishedLabel(items[idx]) + ' mentre la pagina era chiusa.');
+        setStatus(t('status.finishedClosed', { label: L.finishedLabel(items[idx], lang) }));
       }
     });
     saveTimers();
   }
 
-  /* Interfaccia */
+  /* Plan */
 
   function fillSettingsForm() {
     $('s_start').value = settings.start;
@@ -340,15 +389,15 @@
 
   function setPlanEditorOpen(open) {
     $('planEditor').hidden = !open;
-    $('planEditBtn').textContent = open ? 'Chiudi' : 'Modifica';
+    $('planEditBtn').textContent = t(open ? 'planner.close' : 'planner.edit');
     $('planEditBtn').setAttribute('aria-expanded', String(open));
   }
 
   function updatePlanCompact() {
     const plan = S.computePlan(settings);
-    let text = settings.start + '–' + settings.end + ' · ' + plural(plan.count, 'pomodoro', 'pomodori');
-    if (plan.mealStarts.length === 1) text += ' · pausa pasto alle ' + plan.mealStarts[0];
-    if (plan.mealStarts.length > 1) text += ' · ' + plan.mealStarts.length + ' pause pasto';
+    let text = settings.start + '–' + settings.end + ' · ' + L.plural(lang, 'plan.pomodoros', plan.count);
+    if (plan.mealStarts.length === 1) text += t('plan.compactMeal', { time: plan.mealStarts[0] });
+    if (plan.mealStarts.length > 1) text += t('plan.compactMeals', { n: plan.mealStarts.length });
     $('planCompactText').textContent = text;
   }
 
@@ -356,9 +405,14 @@
     const row = document.createElement('div');
     row.className = 'meal-row';
     row.innerHTML =
-      '<label>Pausa pasto alle <input type="time" class="meal-time"></label>' +
-      '<label>per <input type="number" class="meal-min" min="0" max="180"> min</label>' +
-      '<button type="button" class="meal-remove" title="Rimuovi pausa pasto">×</button>';
+      '<label><span data-i18n="meal.at"></span> <input type="time" class="meal-time"></label>' +
+      '<label><span data-i18n="meal.for"></span> <input type="number" class="meal-min" min="0" max="180"> ' +
+      '<span data-i18n="meal.minutes"></span></label>' +
+      '<button type="button" class="meal-remove" data-i18n-attr="title:meal.remove">×</button>';
+    row.querySelectorAll('[data-i18n]').forEach((el) => {
+      el.textContent = t(el.dataset.i18n);
+    });
+    row.querySelector('.meal-remove').title = t('meal.remove');
     row.querySelector('.meal-time').value = meal.time;
     row.querySelector('.meal-min').value = meal.min;
     $('mealList').appendChild(row);
@@ -368,7 +422,7 @@
   function updateMealControls() {
     const rows = [...$('mealList').querySelectorAll('.meal-row')];
     rows.forEach((row, i) => {
-      row.querySelector('.meal-remove').setAttribute('aria-label', 'Rimuovi pausa pasto ' + (i + 1));
+      row.querySelector('.meal-remove').setAttribute('aria-label', t('meal.removeN', { n: i + 1 }));
     });
     $('addMealBtn').disabled = rows.length >= S.MAX_MEALS;
   }
@@ -391,45 +445,34 @@
       notify: settings.notify,
     };
     if (!S.isValidTime(raw.start) || !S.isValidTime(raw.end)) {
-      return { error: 'Inserisci ora di inizio e ora di fine.' };
+      return { error: t('plan.needTimes') };
     }
     if (raw.meals.some((meal) => !S.isValidTime(meal.time))) {
-      return { error: 'Inserisci l\'orario di ogni pausa pasto, oppure rimuovila.' };
+      return { error: t('plan.needMealTime') };
     }
     const next = S.normalizeSettings(raw);
     const plan = S.computePlan(next);
-    if (plan.windowMin === 0) {
-      return { error: 'Ora di inizio e ora di fine devono essere diverse.' };
-    }
-    const tooShort = 'Il tempo disponibile è troppo breve per un pomodoro da ' + next.pomo + ' minuti.';
+    if (plan.windowMin === 0) return { error: t('plan.sameTimes') };
+    const tooShort = t('plan.tooShort', { min: next.pomo });
     if (plan.windowMin < next.pomo) return { error: tooShort };
-    if (plan.mealError === 'outside') {
-      return { error: 'Ogni pausa pasto deve iniziare e finire tra l\'ora di inizio e l\'ora di fine.' };
-    }
-    if (plan.mealError === 'overlap') {
-      return { error: 'Due pause pasto si sovrappongono: cambia un orario o una durata.' };
-    }
+    if (plan.mealError === 'outside') return { error: t('plan.mealOutside') };
+    if (plan.mealError === 'overlap') return { error: t('plan.mealOverlap') };
     if (plan.count === 0) return { error: tooShort };
     return { settings: next, plan };
   }
 
-  function plural(n, one, many) {
-    return n + ' ' + (n === 1 ? one : many);
-  }
-
   function planSummaryText(plan) {
-    const parts = [plural(plan.count, 'pomodoro', 'pomodori')];
-    if (plan.shortBreaks > 0) parts.push(plural(plan.shortBreaks, 'pausa breve', 'pause brevi'));
-    let text = parts.join(' e ');
+    const parts = [L.plural(lang, 'plan.pomodoros', plan.count)];
+    if (plan.shortBreaks > 0) parts.push(L.plural(lang, 'plan.breaks', plan.shortBreaks));
+    let text = parts.join(t('plan.and'));
     const starts = plan.mealStarts;
     if (starts.length === 0) {
-      text += ', nessuna pausa pasto';
+      text += t('plan.noMeal');
     } else {
-      const times = starts.length > 1 ? starts.slice(0, -1).join(', ') + ' e ' + starts[starts.length - 1] : starts[0];
-      text += (starts.length > 1 ? ', pause pasto alle ' : ', pausa pasto alle ') + times;
+      text += t(starts.length > 1 ? 'plan.meals.other' : 'plan.meals.one', { times: L.joinList(lang, starts) });
     }
-    text += '. Fine alle ' + plan.finish + '.';
-    if (plan.capped) text += ' È stato raggiunto il limite di 50 pomodori.';
+    text += t('plan.ends', { time: plan.finish });
+    if (plan.capped) text += t('plan.capped');
     return text;
   }
 
@@ -441,8 +484,10 @@
     $('regenBtn').disabled = Boolean(result.error);
   }
 
+  /* Block list */
+
   function timeInput(idx, field, value, name) {
-    const label = (field === 'start' ? 'Inizio ' : 'Fine ') + name;
+    const label = t(field === 'start' ? 'row.startOf' : 'row.endOf', { name });
     return '<input type="time" value="' + value + '" data-idx="' + idx + '" data-field="' + field +
       '" data-focus-key="' + field + '-' + idx + '" class="t-input" aria-label="' + label + '">';
   }
@@ -452,20 +497,50 @@
     const remaining = st ? st.remaining : S.durationSeconds(item);
     const running = Boolean(st && st.running);
     const started = Boolean(st && st.remaining > 0 && st.remaining < S.durationSeconds(item));
-    const name = S.itemName(item);
+    const name = nameOf(item);
     const lead = item.type === 'pomodoro'
       ? '<input type="checkbox" class="chk" data-idx="' + idx + '" data-focus-key="chk-' + idx + '"' +
-        (item.checked ? ' checked' : '') + ' aria-label="' + name + ' completato">'
+        (item.checked ? ' checked' : '') + ' aria-label="' + t('row.completed', { name }) + '">'
       : '<div class="icon" aria-hidden="true">' + (item.meal ? '🍽' : '☕') + '</div>';
 
     return lead +
       '<button type="button" class="row-toggle" data-action="expand" data-idx="' + idx + '" data-focus-key="expand-' + idx +
-      '" aria-expanded="' + openRows.has(idx) + '" aria-label="' + name + ', dalle ' + item.start + ' alle ' + item.end + ', dettagli">' +
+      '" aria-expanded="' + openRows.has(idx) + '" aria-label="' +
+      t('row.details', { name, start: item.start, end: item.end }) + '">' +
       '<span class="label">' + name + '</span>' +
-      '<span class="note-dot" title="Con nota" aria-hidden="true"' + (item.note ? '' : ' hidden') + '>📝</span>' +
+      '<span class="note-dot" title="' + t('row.hasNote') + '" aria-hidden="true"' + (item.note ? '' : ' hidden') + '>📝</span>' +
       '<span class="row-time">' + item.start + '–' + item.end + '</span>' +
       (running || started ? '<span class="countdown" id="cd-' + idx + '">' + S.fmtMMSS(remaining) + '</span>' : '') +
       '<span class="chevron" aria-hidden="true">▾</span></button>';
+  }
+
+  // Note text is only ever set as the field value, never as HTML.
+  function rowPanel(item, idx) {
+    const st = timerState[idx];
+    const running = Boolean(st && st.running);
+    const name = nameOf(item);
+    const panel = document.createElement('div');
+    panel.className = 'row-panel';
+    panel.innerHTML =
+      '<div class="row-panel-top">' +
+      '<div class="times">' + timeInput(idx, 'start', item.start, name) +
+      '<span aria-hidden="true">–</span>' + timeInput(idx, 'end', item.end, name) + '</div>' +
+      '<div class="row-buttons">' +
+      '<button type="button" data-action="toggle" data-idx="' + idx + '" data-focus-key="toggle-' + idx + '">' +
+      t(running ? 'row.pause' : 'row.startThis') + '</button>' +
+      '<button type="button" data-action="reset" data-idx="' + idx + '" data-focus-key="reset-' + idx + '">' +
+      t('row.reset') + '</button>' +
+      '</div></div>';
+    const input = document.createElement('textarea');
+    input.className = 'note-input';
+    input.rows = 2;
+    input.placeholder = t('row.notePlaceholder');
+    input.dataset.idx = idx;
+    input.dataset.focusKey = 'note-' + idx;
+    input.setAttribute('aria-label', t('row.noteFor', { name }));
+    input.value = typeof item.note === 'string' ? item.note : '';
+    panel.appendChild(input);
+    return panel;
   }
 
   function renderNow() {
@@ -475,10 +550,10 @@
     $('nowTime').hidden = finished;
     if (finished) {
       card.classList.remove('running');
-      $('nowKicker').textContent = 'Programma completato';
-      $('nowName').textContent = 'Com\'è andata?';
-      $('nowNext').textContent = 'Bastano pochi minuti per capire cosa migliorare.';
-      $('nowBtn').textContent = 'Rifletti';
+      $('nowKicker').textContent = t('now.doneKicker');
+      $('nowName').textContent = t('now.doneTitle');
+      $('nowNext').textContent = t('now.doneText');
+      $('nowBtn').textContent = t('now.reflect');
       return;
     }
 
@@ -490,11 +565,11 @@
     const next = items[idx + 1];
 
     card.classList.toggle('running', running);
-    $('nowKicker').textContent = running ? 'Ora' : (started ? 'In pausa' : 'Prossimo');
-    $('nowName').textContent = S.itemName(item);
-    $('nowNext').textContent = next ? 'Poi: ' + S.itemName(next) + ' alle ' + next.start : 'Ultimo blocco della giornata';
+    $('nowKicker').textContent = t(running ? 'now.running' : (started ? 'now.paused' : 'now.next'));
+    $('nowName').textContent = nameOf(item);
+    $('nowNext').textContent = next ? t('now.then', { name: nameOf(next), time: next.start }) : t('now.last');
     $('nowTime').textContent = S.fmtMMSS(st && st.remaining > 0 ? st.remaining : duration);
-    $('nowBtn').textContent = running ? 'Pausa' : (started ? 'Riprendi' : 'Avvia');
+    $('nowBtn').textContent = t(running ? 'now.pause' : (started ? 'now.resume' : 'now.start'));
   }
 
   function render() {
@@ -547,35 +622,7 @@
     updateReviewOutput();
   }
 
-  // Il testo delle note entra solo come valore del campo, mai come HTML.
-  function rowPanel(item, idx) {
-    const st = timerState[idx];
-    const running = Boolean(st && st.running);
-    const name = S.itemName(item);
-    const panel = document.createElement('div');
-    panel.className = 'row-panel';
-    panel.innerHTML =
-      '<div class="row-panel-top">' +
-      '<div class="times">' + timeInput(idx, 'start', item.start, name) +
-      '<span aria-hidden="true">–</span>' + timeInput(idx, 'end', item.end, name) + '</div>' +
-      '<div class="row-buttons">' +
-      '<button type="button" data-action="toggle" data-idx="' + idx + '" data-focus-key="toggle-' + idx + '">' +
-      (running ? 'Pausa' : 'Avvia questo') + '</button>' +
-      '<button type="button" data-action="reset" data-idx="' + idx + '" data-focus-key="reset-' + idx + '">Azzera timer</button>' +
-      '</div></div>';
-    const input = document.createElement('textarea');
-    input.className = 'note-input';
-    input.rows = 2;
-    input.placeholder = 'Scrivi una nota';
-    input.dataset.idx = idx;
-    input.dataset.focusKey = 'note-' + idx;
-    input.setAttribute('aria-label', 'Nota per ' + S.itemName(item));
-    input.value = typeof item.note === 'string' ? item.note : '';
-    panel.appendChild(input);
-    return panel;
-  }
-
-  /* Post-it */
+  /* Sticky note */
 
   function initPostit() {
     const box = $('postitText');
@@ -584,7 +631,7 @@
     box.addEventListener('input', () => writeJSON(POSTIT_KEY, box.value));
   }
 
-  /* Riflessione finale */
+  /* End-of-session reflection */
 
   function element(tag, className, textValue) {
     const el = document.createElement(tag);
@@ -594,10 +641,11 @@
   }
 
   function buildReviewArea(area) {
+    const local = R.areaText(area, lang);
     const box = element('fieldset', 'review-area');
     box.dataset.area = area.id;
-    box.appendChild(element('legend', '', area.label));
-    box.appendChild(element('p', 'review-question', area.question));
+    box.appendChild(element('legend', '', local.label));
+    box.appendChild(element('p', 'review-question', local.question));
 
     const rating = element('div', 'rating');
     for (let value = 1; value <= 5; value++) {
@@ -606,7 +654,7 @@
       input.type = 'radio';
       input.name = 'rate-' + area.id;
       input.value = value;
-      input.setAttribute('aria-label', area.label + ': voto ' + value + ' su 5');
+      input.setAttribute('aria-label', t('review.rating', { area: local.label, value }));
       label.appendChild(input);
       label.appendChild(element('span', '', String(value)));
       rating.appendChild(label);
@@ -615,7 +663,7 @@
 
     const problems = element('div', 'problems');
     problems.hidden = true;
-    area.problems.forEach((problem) => {
+    local.problems.forEach((problem) => {
       const label = element('label');
       const input = element('input', 'problem-input');
       input.type = 'checkbox';
@@ -626,6 +674,14 @@
     });
     box.appendChild(problems);
     return box;
+  }
+
+  function rebuildReviewAreas() {
+    const host = $('reviewAreas');
+    host.innerHTML = '';
+    R.AREAS.forEach((area) => host.appendChild(buildReviewArea(area)));
+    syncReviewForm();
+    showReviewStep(reviewStep);
   }
 
   function syncReviewForm() {
@@ -653,12 +709,11 @@
   function updateReviewNav() {
     const steps = reviewSteps();
     const areas = R.AREAS.length;
-    const isArea = reviewStep < areas;
-    const unrated = isArea && !review.ratings[R.AREAS[reviewStep].id];
-    let next = unrated ? 'Salta' : 'Avanti';
-    if (reviewStep === steps.length - 2) next = 'Vedi il risultato';
-    if (reviewStep === steps.length - 1) next = 'Fine';
-    $('reviewNext').textContent = next;
+    const unrated = reviewStep < areas && !review.ratings[R.AREAS[reviewStep].id];
+    let next = unrated ? 'review.skip' : 'review.next';
+    if (reviewStep === steps.length - 2) next = 'review.seeResult';
+    if (reviewStep === steps.length - 1) next = 'review.done';
+    $('reviewNext').textContent = t(next);
     $('reviewBack').disabled = reviewStep === 0;
   }
 
@@ -670,10 +725,10 @@
       step.hidden = i !== reviewStep;
     });
 
-    let label = 'Risultato';
-    if (reviewStep < areas) label = 'Area ' + (reviewStep + 1) + ' di ' + areas;
-    else if (reviewStep === areas) label = 'Altro';
-    else if (reviewStep === areas + 1) label = 'Per chiudere';
+    let label = t('review.result');
+    if (reviewStep < areas) label = t('review.stepArea', { n: reviewStep + 1, total: areas });
+    else if (reviewStep === areas) label = t('review.other');
+    else if (reviewStep === areas + 1) label = t('review.closing');
     $('reviewStepLabel').textContent = label;
     $('reviewProgress').style.width = (reviewStep / (steps.length - 1)) * 100 + '%';
     $('reviewIntro').hidden = reviewStep !== 0;
@@ -693,32 +748,35 @@
   }
 
   function updateReviewOutput() {
-    const pomodori = items.filter((item) => item.type === 'pomodoro');
-    const done = pomodori.filter((item) => item.checked).length;
-    const result = R.computeScore(review, done, pomodori.length);
+    const pomodoros = items.filter((item) => item.type === 'pomodoro');
+    const done = pomodoros.filter((item) => item.checked).length;
+    const result = R.computeScore(review, done, pomodoros.length, lang);
 
     const scoreBox = $('reviewScore');
     scoreBox.textContent = '';
     scoreBox.classList.toggle('empty', !result);
     if (!result) {
-      scoreBox.textContent = 'Dai almeno un voto per vedere il punteggio finale.';
+      scoreBox.textContent = t('review.scoreEmpty');
     } else {
       const value = element('div', 'score-value', String(result.score));
       value.appendChild(element('small', '', ' / 100'));
       scoreBox.appendChild(value);
       scoreBox.appendChild(element('div', 'score-label', result.label));
       scoreBox.appendChild(element('p', '', result.message));
-      scoreBox.appendChild(element('p', 'score-detail',
-        'Aree valutate: ' + result.ratedCount + ' su ' + R.AREAS.length + ', media ' + result.areas + '/100. ' +
-        'Pomodori completati: ' + done + ' su ' + pomodori.length + '. ' +
-        'Il punteggio pesa per il 70% i voti e per il 30% i pomodori: serve a confrontare le sessioni, non a giudicarti.'));
+      scoreBox.appendChild(element('p', 'score-detail', t('review.scoreDetail', {
+        rated: result.ratedCount,
+        total: R.AREAS.length,
+        areas: result.areas,
+        done,
+        pomodoros: pomodoros.length,
+      })));
     }
 
     const box = $('reviewSolutions');
     box.textContent = '';
-    const solutions = R.selectedSolutions(review);
+    const solutions = R.selectedSolutions(review, lang);
     if (solutions.length === 0) return;
-    box.appendChild(element('h3', '', 'Da provare la prossima volta'));
+    box.appendChild(element('h3', '', t('review.tryNext')));
     const list = element('ul');
     solutions.forEach((entry) => {
       const row = element('li');
@@ -779,7 +837,7 @@
       });
 
     $('resetReviewBtn').addEventListener('click', () => {
-      if (!window.confirm('Vuoi cancellare voti e risposte della riflessione?')) return;
+      if (!window.confirm(t('review.confirmReset'))) return;
       review = R.emptyReview();
       syncReviewForm();
       saveReview();
@@ -788,6 +846,8 @@
     syncReviewForm();
     showReviewStep(0);
   }
+
+  /* Events */
 
   $('list').addEventListener('change', (event) => {
     const el = event.target;
@@ -803,7 +863,7 @@
       const end = field === 'end' ? el.value : item.end;
       if (!S.isValidRange(start, end)) {
         el.value = item[field];
-        setStatus('Orario non valido: inizio e fine devono essere compilati e diversi tra loro.');
+        setStatus(t('status.invalidTime'));
         return;
       }
       cancelPendingAdvance();
@@ -869,7 +929,7 @@
     saveState();
     fillSettingsForm();
     setPlanEditorOpen(false);
-    setStatus('Programma calcolato.');
+    setStatus(t('status.planBuilt'));
     render();
   });
 
@@ -896,6 +956,10 @@
   $('howtoClose').addEventListener('click', () => {
     $('howto').hidden = true;
     writeJSON(HOWTO_KEY, true);
+  });
+
+  $('langBtn').addEventListener('click', () => {
+    setLanguage(lang === 'it' ? 'en' : 'it');
   });
 
   $('mobilePostitBtn').addEventListener('click', () => {
@@ -939,7 +1003,7 @@
       if (item.type === 'pomodoro') item.checked = false;
     });
     saveState();
-    setStatus('Spunte azzerate.');
+    setStatus(t('status.checksCleared'));
     render();
   });
 
@@ -951,7 +1015,7 @@
     saveState();
     clearBackup();
     fillSettingsForm();
-    setStatus('Ultima modifica annullata.');
+    setStatus(t('status.undone'));
     render();
   });
 
@@ -962,7 +1026,7 @@
     items = S.generateItems(settings);
     saveState();
     fillSettingsForm();
-    setStatus('Impostazioni predefinite ripristinate.');
+    setStatus(t('status.defaults'));
     render();
   });
 
@@ -978,16 +1042,10 @@
 
   $('s_notify').addEventListener('change', onNotifyChange);
 
-  // I browser sbloccano l'audio solo dopo un gesto dell'utente, anche quando un timer riprende da solo.
+  // Browsers unlock audio only after a user gesture, even when a timer resumes on its own.
   document.addEventListener('pointerdown', getAudioCtx, { once: true });
 
-  $('dateLabel').textContent = new Date().toLocaleDateString('it-IT', {
-    weekday: 'long',
-    day: 'numeric',
-    month: 'long',
-    year: 'numeric',
-  });
-
+  applyStaticText();
   $('howto').hidden = readJSON(HOWTO_KEY) === true;
   setPlanEditorOpen(!hasSavedState);
   fillSettingsForm();

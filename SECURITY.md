@@ -1,20 +1,19 @@
-# Sicurezza
+# Security
 
-## Segnalare un problema
+## Reporting a problem
 
-Non aprire una issue pubblica. Usa la
-[segnalazione privata](https://github.com/elenasorrentino10/Pomodori_Analysis/security/advisories/new)
-e indica cosa succede, come riprodurlo e con quale browser.
+Please do not open a public issue. Use
+[private vulnerability reporting](https://github.com/elenasorrentino10/Pomodori_Analysis/security/advisories/new)
+and describe what happens, how to reproduce it and which browser you use.
 
-È un progetto personale: le segnalazioni vengono lette appena possibile,
-ma i tempi di risposta non sono garantiti. Viene mantenuta solo la versione
-sul branch `main`.
+This is a personal project: reports are read as soon as possible, but response
+times are not guaranteed. Only the version on the `main` branch is maintained.
 
-## Come vengono trattati i dati
+## How data is handled
 
-Pomodori è una pagina statica, senza server, account o sistemi di analisi.
-Programma, note, post-it e riflessione restano nel browser, nel suo spazio
-di archiviazione locale, e non vengono inviati altrove.
+Pomodori is a static page, with no server, accounts or analytics. Your plan,
+notes, sticky note and reflection stay in the browser, in its local storage,
+and are not sent anywhere.
 
-Chi ha accesso al browser o al dispositivo può leggere questi dati, che non
-sono cifrati. Su un dispositivo condiviso evita di scrivere informazioni riservate.
+Anyone with access to the browser or the device can read this data, which is
+not encrypted. On a shared device, avoid writing confidential information.

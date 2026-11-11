@@ -1,4 +1,4 @@
-// Logica degli orari, senza dipendenze dalla pagina: funziona nel browser e nei test.
+// Scheduling logic, independent of the page: works in the browser and in the tests.
 (function (root, factory) {
   const api = factory();
   if (typeof module === 'object' && module.exports) {
@@ -45,12 +45,12 @@
     return String(m).padStart(2, '0') + ':' + String(s).padStart(2, '0');
   }
 
-  // Un intervallo è valido se ha due orari e non dura zero minuti.
+  // A range is valid when it has two times and does not last zero minutes.
   function isValidRange(start, end) {
     return isValidTime(start) && isValidTime(end) && start !== end;
   }
 
-  // Se la fine è prima dell'inizio, l'intervallo scavalca la mezzanotte.
+  // If the end is before the start, the range crosses midnight.
   function durationSeconds(item) {
     let mins = toMinutes(item.end) - toMinutes(item.start);
     if (mins <= 0) mins += MINUTES_IN_DAY;
@@ -86,7 +86,7 @@
     };
   }
 
-  // Quanti pomodori, con le pause brevi tra l'uno e l'altro, entrano in un certo numero di minuti.
+  // How many pomodoros, with short breaks in between, fit in a number of minutes.
   function maxPomodori(minutes, settings) {
     if (minutes < settings.pomo) return 0;
     return Math.floor((minutes + settings.pausa) / (settings.pomo + settings.pausa));
@@ -96,7 +96,7 @@
     return count > 0 ? count * settings.pomo + (count - 1) * settings.pausa : 0;
   }
 
-  // Minuti trascorsi dall'inizio della giornata: gestisce anche il passaggio della mezzanotte.
+  // Minutes since the start of the day, also across midnight.
   function offsetFromStart(hhmm, settings) {
     return (toMinutes(hhmm) - toMinutes(settings.start) + MINUTES_IN_DAY) % MINUTES_IN_DAY;
   }
@@ -120,7 +120,7 @@
     return null;
   }
 
-  // Calcola quanti pomodori entrano in ogni tratto libero, senza superare l'ora di fine.
+  // Works out how many pomodoros fit in each free stretch, without going past the end time.
   function computePlan(settings) {
     const startMin = toMinutes(settings.start);
     const windowMin = windowMinutes(settings);
@@ -171,7 +171,7 @@
     };
   }
 
-  // Aggiunge una serie di pomodori con le pause brevi. Le pause di zero minuti non vengono create.
+  // Adds a series of pomodoros with short breaks. Zero-minute breaks are not created.
   function appendBlock(items, cursor, firstN, count, settings) {
     let time = cursor;
     for (let i = 0; i < count; i++) {
@@ -201,7 +201,7 @@
     return items;
   }
 
-  // Propone un orario al centro del tratto libero più lungo, o null se non c'è spazio.
+  // Suggests a time in the middle of the longest free stretch, or null when there is no room.
   function suggestMealTime(settings) {
     const windowMin = windowMinutes(settings);
     const meals = sortedMeals(settings);
@@ -226,7 +226,7 @@
     return item.meal ? 'meal' : 'pausa';
   }
 
-  // Riporta spunte e note sui blocchi dello stesso tipo e nella stessa posizione.
+  // Carries checkmarks and notes over to blocks of the same type in the same position.
   function mergeProgress(oldItems, newItems) {
     const byKind = { pomodoro: [], pausa: [], meal: [] };
     oldItems.forEach((item) => byKind[kindOf(item)].push(item));
@@ -254,15 +254,6 @@
     );
   }
 
-  function itemName(item) {
-    if (item.type === 'pomodoro') return 'Pomodoro ' + item.n;
-    return item.meal ? 'Pausa pasto' : 'Pausa';
-  }
-
-  function finishedLabel(item) {
-    return itemName(item) + (item.type === 'pomodoro' ? ' terminato' : ' terminata');
-  }
-
   return {
     DEFAULT_SETTINGS,
     DEFAULT_MEAL_MIN,
@@ -279,7 +270,5 @@
     suggestMealTime,
     mergeProgress,
     isValidState,
-    itemName,
-    finishedLabel,
   };
 });

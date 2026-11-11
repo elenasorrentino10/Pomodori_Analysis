@@ -1,26 +1,27 @@
-# Contribuire
+# Contributing
 
-## Provare il progetto
+## Try the project
 
-Scarica il repository e apri `index.html` nel browser.
+Download the repository and open `index.html` in your browser.
 
-Per i test serve Node.js 20 o superiore:
+The tests need Node.js 20 or later:
 
 ```bash
 npm test
 ```
 
-## Proporre una modifica
+## Propose a change
 
-1. Per i cambiamenti importanti apri prima una issue, così ne parliamo.
-2. Crea un branch a partire da `main`.
-3. Se modifichi `schedule.js` o `review.js`, aggiungi o aggiorna i test.
-4. Apri una pull request spiegando cosa cambia e perché.
+1. For larger changes, open an issue first so we can discuss it.
+2. Create a branch from `main`.
+3. If you change `schedule.js`, `review.js` or `i18n.js`, add or update the tests.
+4. Every interface text needs both an English and an Italian version in `i18n.js`.
+5. Open a pull request explaining what changes and why.
 
-## Regole del progetto
+## Project rules
 
-- Niente librerie esterne né richieste verso servizi esterni.
-- Niente dati personali reali in esempi, test o screenshot.
-- I suggerimenti della riflessione restano consigli generali, non pareri medici.
+- No external libraries and no requests to external services.
+- No real personal data in examples, tests or screenshots.
+- Reflection suggestions stay general advice, not medical opinions.
 
-Inviando un contributo accetti che venga distribuito con la licenza MIT del progetto.
+By submitting a contribution you agree that it is distributed under the project's MIT license.
